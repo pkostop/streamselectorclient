@@ -49,6 +49,8 @@ dependencies {
     implementation( "androidx.camera:camera-view:1.2.2")
     implementation( "androidx.camera:camera-extensions:1.2.2")
 
+    implementation("com.arthenica:ffmpeg-kit-full:5.1")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

@@ -1,10 +1,16 @@
 package org.kemea.isafeco.client;
 
+import static androidx.camera.core.CameraXThreads.TAG;
+
 import android.Manifest;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 import android.widget.Toast;
 
+import com.arthenica.ffmpegkit.FFmpegKit;
+import com.arthenica.ffmpegkit.FFmpegSession;
+import com.arthenica.ffmpegkit.ReturnCode;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -12,6 +18,7 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
@@ -21,6 +28,7 @@ import androidx.camera.video.Quality;
 import androidx.camera.video.QualitySelector;
 import androidx.camera.video.Recorder;
 import androidx.camera.video.VideoCapture;
+import androidx.camera.view.video.OutputFileOptions;
 import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -40,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.RECORD_AUDIO
     };
     private ActivityMainBinding binding;
+    private FFmpegSession ffmpegSession;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,14 +87,8 @@ public class MainActivity extends AppCompatActivity {
                     Recorder recorder=b.build();
                     VideoCapture videoCapture=VideoCapture.withOutput(recorder);
 
-                    ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                            .setTargetResolution(new Size(1280, 720)) // Example resolution
-                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                            .build();
-
-                    imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(MainActivity.this), MainActivity.this::analyzeImage);
-
-                    processCameraProvider.bindToLifecycle(MainActivity.this, CameraSelector.DEFAULT_BACK_CAMERA, preview, videoCapture);
+                    Camera camera=processCameraProvider.bindToLifecycle(MainActivity.this, CameraSelector.DEFAULT_BACK_CAMERA, preview, videoCapture);
+                    startStreaming();
                 } catch (ExecutionException e) {
                     throw new RuntimeException(e);
                 } catch (InterruptedException e) {
@@ -95,8 +98,21 @@ public class MainActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
-    private void analyzeImage(ImageProxy image) {
-        image.close();
+    private void startStreaming() {
+        String serverAddress = "rtp://127.0.0.1:9094";
+
+        String ffmpegCommand = String.format(
+                "-f android_camera -i %s -c:v mpeg4 -preset ultrafast -f rtp %s",
+                "/dev/video0",
+                serverAddress
+        );
+        ffmpegSession = FFmpegKit.executeAsync(ffmpegCommand, sessionCompleted -> {
+            if (ReturnCode.isSuccess(sessionCompleted.getReturnCode())) {
+
+            } else {
+                Toast.makeText(MainActivity.this, sessionCompleted.getLogsAsString(), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void requestPermissions(){

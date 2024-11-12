@@ -15,7 +15,7 @@ import org.kemea.isafeco.client.utils.AppLogger;
 public class RTPStreamer {
     FFmpegSession ffmpegSession;
     public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA =
-            "-loglevel debug -f android_camera -i 0:0 -c:v mpeg2video -b:v 256k -r:v 15 -muxrate 1M -flush_packets 1 -vf scale=320:240  -f rtp \"%s\" -c:v mpeg2video -y %s %s";
+            "-loglevel debug -f android_camera -i 0:0 -c:v mpeg2video -b:v 256k -r:v 15 -flush_packets 1 -vf scale=320:240  -f rtp \"%s\"  %s";
 
     static final String SDP_FILE_OPTION = "-sdp_file %s";
 
@@ -27,7 +27,6 @@ public class RTPStreamer {
         String ffmpegCommand = String.format(
                 CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA,
                 destinationAddress,
-                outputFile,
                 sdpFile != null ? sdpFile : ""
         );
         AppLogger.getLogger().e(ffmpegCommand);

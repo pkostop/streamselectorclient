@@ -5,6 +5,11 @@
     <uses-feature android:name="android.hardware.camera.any" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -15,6 +20,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Isafeco"
         tools:targetApi="31">
+        <service
+            android:name=".CameraRecordingService"
+            android:foregroundServiceType="camera|microphone"
+            android:exported="false">
+        </service>
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -26,7 +26,8 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String[] REQUIRED_PERMISSIONS = {
             Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.POST_NOTIFICATIONS
     };
     private ActivityMainBinding binding;
     public ApplicationProperties applicationProperties;

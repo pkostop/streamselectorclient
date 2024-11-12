@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -36,6 +37,7 @@ public class SettingsFragment extends Fragment {
             public void onClick(View view) {
                 applicationProperties.setProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS, editTextRtpStreamingAddress.getText().toString());
                 applicationProperties.save();
+                Toast.makeText(getActivity(),"Saved!!!", Toast.LENGTH_LONG).show();
             }
         });
 

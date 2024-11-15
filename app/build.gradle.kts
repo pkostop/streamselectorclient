@@ -51,6 +51,8 @@ dependencies {
 
     implementation("com.arthenica:ffmpeg-kit-full:5.1")
 
+    implementation("com.google.code.gson:gson:2.11.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

@@ -10,6 +10,8 @@ public class ApplicationProperties {
     public static final String FILE_NAME = "application.properties";
     public static final String PROP_RTP_STREAMING_ADDRESS = "RTP_STREAMING_ADDRESS";
     public static final String PROP_STREAM_SELECTOR_ADDRESS = "STREAM_SELECTOR_ADDRESS";
+    public static final String PROP_STREAM_SELECTOR_USERNAME = "STREAM_SELECTOR_USERNAME";
+    public static final String PROP_STREAM_SELECTOR_PASSWORD = "STREAM_SELECTOR_PASSWORD";
     Properties properties = new Properties();
     String filePath = null;
 

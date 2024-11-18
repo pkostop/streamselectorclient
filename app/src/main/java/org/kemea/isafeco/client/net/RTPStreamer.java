@@ -16,6 +16,8 @@ public class RTPStreamer {
     FFmpegSession ffmpegSession;
     public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA =
             "-loglevel debug -f android_camera -i 0:0 -c:v mpeg2video -b:v 256k -r:v 15 -flush_packets 1 -vf scale=320:240  -f rtp \"%s\"  %s";
+    public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
+            "-loglevel debug -f android_camera -i 0:0 -map 0:v -c:v mpeg2video -b:v 256k -r:v 15 -flush_packets 1 -vf scale=320:240 -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\" ";
 
     static final String SDP_FILE_OPTION = "-sdp_file %s";
 
@@ -25,9 +27,8 @@ public class RTPStreamer {
         if (sdpFile != null)
             sdpFile = String.format(SDP_FILE_OPTION, sdpFile);
         String ffmpegCommand = String.format(
-                CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA,
-                destinationAddress,
-                sdpFile != null ? sdpFile : ""
+                CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW,
+                destinationAddress
         );
         AppLogger.getLogger().e(ffmpegCommand);
         ffmpegSession = FFmpegKit.executeAsync(ffmpegCommand, getfFmpegSessionCompleteCallback(sdpFile), getLogCallback(), null);

@@ -29,6 +29,13 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    packagingOptions {
+        pickFirst("lib/arm64-v8a/libc++_shared.so")
+        pickFirst("lib/armeabi-v7a/libc++_shared.so")
+        pickFirst("lib/x86/libc++_shared.so")
+        pickFirst("lib/x86_64/libc++_shared.so")
+    }
+
 }
 
 dependencies {
@@ -53,6 +60,9 @@ dependencies {
     implementation("com.arthenica:ffmpeg-kit-full:5.1")
 
     implementation("com.google.code.gson:gson:2.11.0")
+
+    implementation("org.videolan.android:libvlc-all:3.5.1")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

@@ -27,6 +27,7 @@ public class CameraRecordingService extends Service {
     public static final String ISAFECO_CLIENT_NOTIFICATION_CHANNEL = "IsafecoClientNotificationChannel";
     public static final String ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING = "ISAFECO Video Streaming Application is recording";
     RTPStreamer rtpStreamer;
+
     ApplicationProperties applicationProperties = null;
     String sdpFilePath = null;
     static final String CHANNEL_ID = "100";
@@ -50,6 +51,7 @@ public class CameraRecordingService extends Service {
             AppLogger.getLogger().e(Util.stacktrace(e));
             Toast.makeText(this, "Cannot Start Service", Toast.LENGTH_LONG).show();
         }
+
     }
 
     @Nullable
@@ -63,6 +65,7 @@ public class CameraRecordingService extends Service {
         if (streamingAddress != null && !"".equalsIgnoreCase(streamingAddress)) {
             trasmitToStreamSelector();
         }
+
     }
 
     @NonNull

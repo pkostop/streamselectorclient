@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "org.kemea.isafeco.client"
-        minSdk = 26
+        minSdk = 29
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -40,14 +40,15 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
 
     implementation("androidx.camera:camera-core:1.2.2")
-    implementation( "androidx.camera:camera-camera2:1.2.2")
-    implementation( "androidx.camera:camera-lifecycle:1.2.2")
-    implementation( "androidx.camera:camera-video:1.2.2")
+    implementation("androidx.camera:camera-camera2:1.2.2")
+    implementation("androidx.camera:camera-lifecycle:1.2.2")
+    implementation("androidx.camera:camera-video:1.2.2")
 
-    implementation( "androidx.camera:camera-view:1.2.2")
-    implementation( "androidx.camera:camera-extensions:1.2.2")
+    implementation("androidx.camera:camera-view:1.2.2")
+    implementation("androidx.camera:camera-extensions:1.2.2")
 
     implementation("com.arthenica:ffmpeg-kit-full:5.1")
 

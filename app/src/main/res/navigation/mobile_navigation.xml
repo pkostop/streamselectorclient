@@ -18,6 +18,12 @@
         tools:layout="@layout/fragment_settings" />
 
     <fragment
+        android:id="@+id/navigation_select_stream"
+        android:name="org.kemea.isafeco.client.ui.streamreceiver.StreamReceiverFragment"
+        android:label="@string/title_receive_stream"
+        tools:layout="@layout/fragment_select_stream" />
+
+    <fragment
         android:id="@+id/navigation_logs"
         android:name="org.kemea.isafeco.client.ui.logs.LogsFragment"
         android:label="@string/title_logs"

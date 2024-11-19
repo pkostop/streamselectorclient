@@ -52,6 +52,11 @@ dependencies {
     implementation("com.arthenica:ffmpeg-kit-full:5.1")
 
     implementation("com.google.code.gson:gson:2.11.0")
+    implementation("com.google.android.exoplayer:exoplayer:2.19.1")
+    implementation("com.google.android.exoplayer:exoplayer-ui:2.19.1")
+
+
+//    implementation(libs.media3.exoplayer)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

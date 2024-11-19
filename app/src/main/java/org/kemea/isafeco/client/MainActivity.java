@@ -17,8 +17,11 @@ import com.arthenica.ffmpegkit.FFmpegSession;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.kemea.isafeco.client.databinding.ActivityMainBinding;
+import org.kemea.isafeco.client.net.StreamSelectorRestMock;
+import org.kemea.isafeco.client.utils.AppLogger;
 import org.kemea.isafeco.client.utils.ApplicationProperties;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -33,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     public ApplicationProperties applicationProperties;
 
     private FFmpegSession ffmpegSession;
+    private StreamSelectorRestMock streamSelectorRestMock;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +54,16 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
         requestPermissions();
+        startStreamSelectorMock();
+    }
+
+    private void startStreamSelectorMock() {
+        streamSelectorRestMock = new StreamSelectorRestMock(9094);
+        try {
+            streamSelectorRestMock.start();
+        } catch (IOException e) {
+            AppLogger.getLogger().e(e);
+        }
     }
 
 

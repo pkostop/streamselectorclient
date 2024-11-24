@@ -27,7 +27,7 @@ public class StreamReceiverFragment extends Fragment {
     private static final String TAG = "LiveStreamFragment";
 
     //private static final String RTSP_URL = "rtsp://demo:demo@ipvmdemo.dyndns.org:5541/onvif-media/media.amp?profile=profile_1_h264&sessiontimeout=60&streamtype=unicast";
-    private String rtspUrl = "rtsp://demo:demo@ipvmdemo.dyndns.org:5541/onvif-media/media.amp?profile=profile_1_h264&sessiontimeout=60&streamtype=unicast";
+    private String rtspUrl = "rtsp://192.168.2.103:8554/live.stream";
 
     @SuppressLint("MissingInflatedId")
     @Nullable
@@ -48,7 +48,7 @@ public class StreamReceiverFragment extends Fragment {
         if (getArguments() != null) {
             rtspUrl = getArguments().getString("RTSP_URL", "");
             //FIXME: DELETE THE HARDCODE URL BELOW:
-            rtspUrl = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov";
+            rtspUrl = "rtsp://192.168.2.103:8554/live.stream";
         }
 
         if (rtspUrl == null || rtspUrl.isEmpty()) {

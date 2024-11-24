@@ -25,9 +25,7 @@ public class StreamReceiverFragment extends Fragment {
     private ExoPlayer exoPlayer;
 
     private static final String TAG = "LiveStreamFragment";
-
-    //private static final String RTSP_URL = "rtsp://demo:demo@ipvmdemo.dyndns.org:5541/onvif-media/media.amp?profile=profile_1_h264&sessiontimeout=60&streamtype=unicast";
-    private String rtspUrl = "rtsp://192.168.2.103:8554/live.stream";
+    private String rtspUrl = "rtsp://192.168.1.9:8554/live.stream";
 
     @SuppressLint("MissingInflatedId")
     @Nullable
@@ -59,30 +57,31 @@ public class StreamReceiverFragment extends Fragment {
     }
 
     private void initializePlayer() {
-        Log.d(TAG, ">>> Player initializePlayer()");
 
         if (playerView == null) {
-            Log.e(TAG, "***PlayerView is null. Ensure the layout is inflated correctly.");
+            Log.e(TAG, "*** PlayerView is null. Ensure the layout is inflated correctly.");
             Toast.makeText(requireContext(), "PlayerView not initialized", Toast.LENGTH_LONG).show();
             return;
         }
 
         exoPlayer = new ExoPlayer.Builder(requireContext()).build();
+        exoPlayer.clearVideoSurface();
         Log.d(TAG, " >>> PlayerView: " + playerView);
 
         playerView.setPlayer(exoPlayer);
 
-        // Add a listener to handle events
-        /*exoPlayer.addListener(new Player.Listener() {
+        exoPlayer.addListener(new Player.Listener() {
             @Override
-            public void onPlayerError(@NonNull PlaybackException error) {
-                // Log the error
-                Log.e(TAG, "Playback error: " + error.getMessage(), error);
-
-                // Display a user-friendly message
-                Toast.makeText(requireContext(), "Error: " + error.getMessage(), Toast.LENGTH_LONG).show();
+            public void onPlayerError(PlaybackException error) {
+                Log.e("ExoPlayer", "Playback error: " + error.getMessage(), error);
             }
-        }); */
+
+            @Override
+            public void onSurfaceSizeChanged(int width, int height) {
+                Log.d("ExoPlayer", "Surface size changed: " + width + " x " + height);
+            }
+        });
+
         try {
             // Create a MediaItem with the RTSP URL
             MediaItem mediaItem = MediaItem.fromUri(Uri.parse(rtspUrl));
@@ -103,13 +102,11 @@ public class StreamReceiverFragment extends Fragment {
                             TextView errorMessage = requireView().findViewById(R.id.error_message);
                             errorMessage.setVisibility(View.VISIBLE);
                             errorMessage.setText("Error: " + error.getMessage());
-
                             Toast.makeText(requireContext(), "Playback error occurred", Toast.LENGTH_LONG).show();
                         }
                     }
                 }
             });
-
             // Prepare and start the player
             exoPlayer.prepare();
             exoPlayer.play();
@@ -117,8 +114,6 @@ public class StreamReceiverFragment extends Fragment {
             Log.e(TAG, "Player initialization failed", e);
         }
     }
-
-
 
     @Override
     public void onPause() {
@@ -140,6 +135,7 @@ public class StreamReceiverFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         if (exoPlayer != null) {
+            exoPlayer.clearVideoSurface();
             exoPlayer.release();
             exoPlayer = null;
         }

@@ -13,6 +13,7 @@
         android:layout_height="68dp"
         android:layout_marginTop="24dp"
         android:hint="Incoming Stream Source Address"
+        android:text="rtsp://192.168.1.9:8554/live.stream"
         android:inputType="text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.483"

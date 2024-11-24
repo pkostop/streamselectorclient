@@ -1,12 +1,16 @@
 package org.kemea.isafeco.client;
 
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
+import android.widget.Toast;
+import android.widget.VideoView;
 
 import androidx.appcompat.app.AppCompatActivity;
-//import androidx.media3.exoplayer.ExoPlayer;
 
 public class VideoPlayerActivity extends AppCompatActivity {
-    /*private ExoPlayer player;
+
+    private VideoView videoView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -14,16 +18,44 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         // Get the RTSP URL passed from the previous activity
         String rtspUrl = getIntent().getStringExtra("RTSP_URL");
+        videoView = findViewById(R.id.player_view);
 
-        // Initialize ExoPlayer and PlayerView
-        PlayerView playerView = findViewById(R.id.player_view);
-        player = new ExoPlayer.Builder(this).build();
-        playerView.setPlayer(player);
+        // Set the URI for the VideoView
+        videoView.setVideoURI(Uri.parse(rtspUrl));
 
-        // Prepare the media item
-        MediaItem mediaItem = MediaItem.fromUri(rtspUrl);
-        player.setMediaItem(mediaItem);
-        player.prepare();
-        player.play();
-    }*/
+        // Set a listener for when the video is prepared
+        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.setLooping(true); // Optional: loop the video
+                videoView.start();  // Start the video
+            }
+        });
+        // Set a listener for errors
+        videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                Toast.makeText(VideoPlayerActivity.this,
+                        "Error occurred while playing video: " + what + ", " + extra,
+                        Toast.LENGTH_SHORT).show();
+                return true; // Return true if the error is handled
+            }
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (videoView.isPlaying()) {
+            videoView.pause(); // Pause the video when activity is paused
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (videoView != null) {
+            videoView.stopPlayback(); // Release resources when activity is destroyed
+        }
+    }
 }

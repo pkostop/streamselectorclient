@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
+    app:defaultNavHost="true"
     app:startDestination="@+id/navigation_home">
 
     <fragment
@@ -21,6 +22,7 @@
         android:id="@+id/navigation_select_stream"
         android:name="org.kemea.isafeco.client.ui.streamreceiver.StreamInputFragment"
         android:label="@string/title_receive_stream"
+        app:defaultNavHost="true"
         tools:layout="@layout/fragment_select_stream" />
 
     <!--ADDED BELOW-->
@@ -28,7 +30,8 @@
     <fragment
         android:id="@+id/liveStreamFragment"
         android:name="org.kemea.isafeco.client.ui.streamreceiver.StreamReceiverFragment"
-        android:label="LiveStreamFragment"
+        android:label="Streaming Live"
+        app:defaultNavHost="true"
         tools:layout="@layout/fragment_video_player" >
         <argument
             android:name="RTSP_URL"
@@ -38,6 +41,11 @@
     <action
         android:id="@+id/action_streamInputFragment_to_liveStreamFragment"
         app:destination="@id/liveStreamFragment" />
+
+    <!-- Action to go back to select stream screen-->
+    <action
+        android:id="@+id/action_liveStreamFragment_to_streamInputFragment"
+        app:destination="@id/navigation_select_stream" />
 
     <fragment
         android:id="@+id/navigation_logs"

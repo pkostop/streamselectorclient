@@ -6,17 +6,18 @@
     android:background="@android:color/black">
 
     <!-- PlayerView for video playback -->
+
+    <!-- Optional TextView for error messages (hidden by default) -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
-        app:surface_type="texture_view"
         android:keepScreenOn="true"
         app:show_buffering="when_playing"
+        app:surface_type="texture_view"
         app:use_controller="true" />
 
-    <!-- Optional TextView for error messages (hidden by default) -->
     <TextView
         android:id="@+id/error_message"
         android:layout_width="wrap_content"
@@ -25,7 +26,7 @@
         android:padding="16dp"
         android:text="An error occurred while playing the video."
         android:textColor="@android:color/white"
-        android:background="@android:color/black"
+        android:background="#80000000"
         android:visibility="gone" />
 
 </FrameLayout>

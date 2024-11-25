@@ -1,5 +1,7 @@
 package org.kemea.isafeco.client.ui.streamreceiver;
 
+import static androidx.media3.exoplayer.SimpleExoPlayer.*;
+
 import android.annotation.SuppressLint;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,19 +12,30 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.LoadControl;
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
+import androidx.media3.exoplayer.trackselection.TrackSelector;
 import androidx.media3.ui.PlayerView;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+
 import org.kemea.isafeco.client.R;
 
 public class StreamReceiverFragment extends Fragment {
     private PlayerView playerView;
     private ExoPlayer exoPlayer;
+    private NavController navController;
 
     private static final String TAG = "LiveStreamFragment";
     private String rtspUrl = "rtsp://192.168.1.9:8554/live.stream";
@@ -42,20 +55,25 @@ public class StreamReceiverFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        navController = Navigation.findNavController(view);
+
         // Retrieve RTSP URL from arguments
         if (getArguments() != null) {
             rtspUrl = getArguments().getString("RTSP_URL", "");
             //FIXME: DELETE THE HARDCODE URL BELOW:
-            rtspUrl = "rtsp://192.168.2.103:8554/live.stream";
+            rtspUrl = "rtsp://192.168.1.9:8554/live.stream";
         }
 
         if (rtspUrl == null || rtspUrl.isEmpty()) {
             Toast.makeText(requireContext(), "No RTSP URL provided", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        //call init to initialize ExoPlayer
         initializePlayer();
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void initializePlayer() {
 
         if (playerView == null) {
@@ -64,7 +82,17 @@ public class StreamReceiverFragment extends Fragment {
             return;
         }
 
-        exoPlayer = new ExoPlayer.Builder(requireContext()).build();
+        // 1. Create a DefaultTrackSelector for track selection.
+        TrackSelector trackSelector = new DefaultTrackSelector(requireContext());
+
+        // 2. Create a DefaultLoadControl for buffering management (optional, but recommended).
+        LoadControl loadControl = new DefaultLoadControl();
+        exoPlayer = new ExoPlayer.Builder(requireContext())
+                .setTrackSelector(trackSelector)
+                .setLoadControl(loadControl) // Optional
+                .build();
+
+        //exoPlayer = new ExoPlayer.Builder(requireContext()).build();
         exoPlayer.clearVideoSurface();
         Log.d(TAG, " >>> PlayerView: " + playerView);
 
@@ -110,7 +138,7 @@ public class StreamReceiverFragment extends Fragment {
             // Prepare and start the player
             exoPlayer.prepare();
             exoPlayer.play();
-        }catch (Exception e) {
+        } catch (Exception e) {
             Log.e(TAG, "Player initialization failed", e);
         }
     }
@@ -139,5 +167,8 @@ public class StreamReceiverFragment extends Fragment {
             exoPlayer.release();
             exoPlayer = null;
         }
+    }
+    public void handleOnBackPressed() {
+        navController.navigateUp();
     }
 }

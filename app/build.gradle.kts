@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
 }
 
+
 android {
     namespace = "org.kemea.isafeco.client"
     compileSdk = 34
@@ -60,6 +61,14 @@ dependencies {
     implementation("com.arthenica:ffmpeg-kit-full:5.1")
 
     implementation("com.google.code.gson:gson:2.11.0")
+    //implementation ("org.videolan.android:libvlc-all:3.6.0")
+
+    //implementation("libs.media3.exoplayer")
+
+    implementation (libs.media3.exoplayer) // ExoPlayer core library
+    implementation (libs.media3.exoplayer.rtsp)
+    implementation (libs.media3.ui)
+    implementation(libs.firebase.inappmessaging)       // For PlayerView
 
     implementation("org.videolan.android:libvlc-all:3.5.1")
 
@@ -68,3 +77,4 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 }
+

@@ -10,7 +10,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
@@ -46,16 +45,15 @@ public class CameraRecordingService extends Service {
             NotificationChannel notificationChannel = getNotificationChannel();
             createNotification(notificationChannel);
             startStreaming();
-            rtpStreamer = new RTPStreamer();
         } catch (Exception e) {
             AppLogger.getLogger().e(Util.stacktrace(e));
-            Toast.makeText(this, "Cannot Start Service", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, String.format("Cannot Start Service: %s", e.getMessage()), Toast.LENGTH_LONG).show();
         }
 
     }
 
-    @Nullable
     private void startStreaming() throws Exception {
+        rtpStreamer = new RTPStreamer(getApplicationContext());
         String streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS);
         if (streamingAddress != null && !"".equalsIgnoreCase(streamingAddress)) {
             rtpStreamer.startStreaming(streamingAddress, sdpFilePath, getFilesDir() + "/output.mpg");
@@ -68,13 +66,14 @@ public class CameraRecordingService extends Service {
 
     }
 
-    @NonNull
     private void trasmitToStreamSelector() throws Exception {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    StreamSelectorClient streamSelectorClient = new StreamSelectorClient(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS));
+                    String apiKey = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY);
+                    String address = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS);
+                    StreamSelectorClient streamSelectorClient = new StreamSelectorClient(address, apiKey);
                     String userName = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME);
                     String password = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD);
                     SessionSourceStreamOutput sessionSourceStreamOutput = null;
@@ -105,9 +104,9 @@ public class CameraRecordingService extends Service {
         Notification notification = new NotificationCompat.Builder(this, CAMERA_RECORDING_CHANNEL).
                 setContentTitle(ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING).setChannelId(notificationChannel.getId()).build();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            startForeground(new Integer(CHANNEL_ID), notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA);
+            startForeground(Integer.parseInt(CHANNEL_ID), notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA);
         } else {
-            startForeground(new Integer(CHANNEL_ID), notification);
+            startForeground(Integer.parseInt(CHANNEL_ID), notification);
         }
     }
 

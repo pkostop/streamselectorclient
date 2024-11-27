@@ -28,11 +28,12 @@ public class SettingsFragment extends Fragment {
 
         binding = FragmentSettingsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-        applicationProperties = ((MainActivity) getActivity()).getApplicationProperties();
+        applicationProperties = ((MainActivity) requireActivity()).getApplicationProperties();
         final EditText editTextRtpStreamingAddress = binding.rtpStreamDestinationAddress;
         final EditText editTextStreamSelectorAddress = binding.streamSelectorAddress;
         final EditText editTextStreamSelectorUsername = binding.streamSelectorUsername;
         final EditText editTextStreamSelectorPassword = binding.streamSelectorPassword;
+        final EditText editTextStreamSelectorApiKey = binding.streamSelectorApikey;
         if (applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS) != null)
             editTextRtpStreamingAddress.setText(applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS));
         if (applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS) != null)
@@ -41,6 +42,9 @@ public class SettingsFragment extends Fragment {
             editTextStreamSelectorUsername.setText(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME));
         if (applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD) != null)
             editTextStreamSelectorPassword.setText(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD));
+        if (applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY) != null)
+            editTextStreamSelectorApiKey.setText(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY));
+
         binding.saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -48,6 +52,7 @@ public class SettingsFragment extends Fragment {
                 applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS, editTextStreamSelectorAddress.getText().toString());
                 applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME, editTextStreamSelectorUsername.getText().toString());
                 applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD, editTextStreamSelectorPassword.getText().toString());
+                applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY, editTextStreamSelectorApiKey.getText().toString());
                 applicationProperties.save();
                 Toast.makeText(getActivity(), "Saved!!!", Toast.LENGTH_LONG).show();
             }

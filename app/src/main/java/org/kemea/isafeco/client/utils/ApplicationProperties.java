@@ -12,6 +12,7 @@ public class ApplicationProperties {
     public static final String PROP_STREAM_SELECTOR_ADDRESS = "STREAM_SELECTOR_ADDRESS";
     public static final String PROP_STREAM_SELECTOR_USERNAME = "STREAM_SELECTOR_USERNAME";
     public static final String PROP_STREAM_SELECTOR_PASSWORD = "STREAM_SELECTOR_PASSWORD";
+    public static final String PROP_STREAM_SELECTOR_API_KEY = "STREAM_SELECTOR_API_KEY";
     Properties properties = new Properties();
     String filePath = null;
 

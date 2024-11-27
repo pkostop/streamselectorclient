@@ -4,19 +4,11 @@ import com.google.gson.annotations.SerializedName;
 
 public class LoginOutput {
     Long id;
-
     String login;
-
     String name;
-
-
     String email;
-
-
     String phone;
-
     String type;
-
     String token;
     @SerializedName("application_id")
     Long applicationId;

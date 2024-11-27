@@ -13,17 +13,19 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/navigation_settings"
-        android:name="org.kemea.isafeco.client.ui.settings.SettingsFragment"
-        android:label="@string/title_settings"
-        tools:layout="@layout/fragment_settings" />
-
-    <fragment
         android:id="@+id/navigation_select_stream"
         android:name="org.kemea.isafeco.client.ui.streamreceiver.StreamInputFragment"
         android:label="@string/title_receive_stream"
         app:defaultNavHost="true"
         tools:layout="@layout/fragment_select_stream" />
+
+
+    <fragment
+        android:id="@+id/navigation_settings"
+        android:name="org.kemea.isafeco.client.ui.settings.SettingsFragment"
+        android:label="@string/title_settings"
+        tools:layout="@layout/fragment_settings" />
+
 
     <!--ADDED BELOW-->
 
@@ -32,7 +34,7 @@
         android:name="org.kemea.isafeco.client.ui.streamreceiver.StreamReceiverFragment"
         android:label="Streaming Live"
         app:defaultNavHost="true"
-        tools:layout="@layout/fragment_video_player" >
+        tools:layout="@layout/fragment_video_player">
         <argument
             android:name="RTSP_URL"
             app:argType="string" />

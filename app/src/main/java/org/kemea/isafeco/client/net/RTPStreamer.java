@@ -2,6 +2,9 @@ package org.kemea.isafeco.client.net;
 
 import static org.kemea.isafeco.client.utils.Util.readFile;
 
+import android.content.Context;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 
 import com.arthenica.ffmpegkit.FFmpegKit;
@@ -14,12 +17,17 @@ import org.kemea.isafeco.client.utils.AppLogger;
 
 public class RTPStreamer {
     FFmpegSession ffmpegSession;
+    Context context;
     public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA =
             "-loglevel debug -f android_camera -i 0:0 -c:v mpeg2video -b:v 256k -r:v 15 -flush_packets 1 -vf scale=320:240  -f rtp \"%s\"  %s";
     public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
             "-loglevel debug -f android_camera -i 0:0 -map 0:v -c:v mpeg2video -b:v 256k -r:v 15 -flush_packets 1 -vf scale=320:240 -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\" ";
 
     static final String SDP_FILE_OPTION = "-sdp_file %s";
+
+    public RTPStreamer(Context context) {
+        this.context = context;
+    }
 
     public void startStreaming(String destinationAddress, String sdpFile, String outputFile) {
         if (destinationAddress == null || "".equalsIgnoreCase(destinationAddress))
@@ -47,6 +55,7 @@ public class RTPStreamer {
                 AppLogger.getLogger().e("FFMPEGKit Success!!!");
             } else {
                 AppLogger.getLogger().e("FFMPEGKit Error!!!");
+                Toast.makeText(context, String.format("RTP Streaming Failed: %s", sessionCompleted.getOutput()), Toast.LENGTH_LONG).show();
             }
             try {
                 AppLogger.getLogger().e("--------------SDP FILE---------------------");

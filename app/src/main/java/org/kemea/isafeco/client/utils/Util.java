@@ -2,16 +2,9 @@ package org.kemea.isafeco.client.utils;
 
 import com.google.gson.GsonBuilder;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Iterator;
-import java.util.Map;
 
 public class Util {
 
@@ -40,6 +33,5 @@ public class Util {
     public static <T> T fromJson(String json, Class<T> _class) {
         return new GsonBuilder().create().fromJson(json, _class);
     }
-
 
 }

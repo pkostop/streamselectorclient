@@ -3,26 +3,34 @@ package org.kemea.isafeco.client.streamselector.stubs.output;
 import com.google.gson.annotations.SerializedName;
 
 public class ClusterInfo {
-	@SerializedName("cluster_id")
-	private double clusterId;
+    @SerializedName("cluster_id")
+    private double clusterId;
 
-	@SerializedName("contract_id")
-	private long contractId;
+    @SerializedName("contract_id")
+    private long contractId;
 
-	// Getters and Setters
-	public double getClusterId() {
-		return clusterId;
-	}
+    public ClusterInfo(double clusterId, long contractId) {
+        this.clusterId = clusterId;
+        this.contractId = contractId;
+    }
 
-	public void setClusterId(double clusterId) {
-		this.clusterId = clusterId;
-	}
+    public ClusterInfo() {
+    }
 
-	public long getContractId() {
-		return contractId;
-	}
+    // Getters and Setters
+    public double getClusterId() {
+        return clusterId;
+    }
 
-	public void setContractId(long contractId) {
-		this.contractId = contractId;
-	}
+    public void setClusterId(double clusterId) {
+        this.clusterId = clusterId;
+    }
+
+    public long getContractId() {
+        return contractId;
+    }
+
+    public void setContractId(long contractId) {
+        this.contractId = contractId;
+    }
 }

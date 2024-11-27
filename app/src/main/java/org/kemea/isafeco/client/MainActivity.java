@@ -13,7 +13,6 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.arthenica.ffmpegkit.FFmpegSession;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.kemea.isafeco.client.databinding.ActivityMainBinding;
@@ -32,20 +31,15 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.POST_NOTIFICATIONS
     };
-    private ActivityMainBinding binding;
+
     public ApplicationProperties applicationProperties;
 
-    private FFmpegSession ffmpegSession;
-    private StreamSelectorRestMock streamSelectorRestMock;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        applicationProperties = new ApplicationProperties(this.getFilesDir().getAbsolutePath());
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-
+        ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_home, R.id.navigation_settings, R.id.navigation_select_stream, R.id.navigation_logs)
@@ -55,10 +49,11 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
         requestPermissions();
         startStreamSelectorMock();
+        initApplicationProperties();
     }
 
     private void startStreamSelectorMock() {
-        streamSelectorRestMock = new StreamSelectorRestMock(9094);
+        StreamSelectorRestMock streamSelectorRestMock = new StreamSelectorRestMock(9094);
         try {
             streamSelectorRestMock.start();
         } catch (IOException e) {
@@ -68,11 +63,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void requestPermissions() {
-        ActivityResultLauncher activityResultLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
+        ActivityResultLauncher<String[]> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
             @Override
             public void onActivityResult(Map<String, Boolean> permissions) {
                 for (String key : permissions.keySet()) {
-                    if (Arrays.asList(REQUIRED_PERMISSIONS).contains(key) && !permissions.get(key)) {
+                    if (Arrays.asList(REQUIRED_PERMISSIONS).contains(key) && permissions.get(key) != null) {
                         Toast.makeText(MainActivity.this,
                                 String.format("Permission %s request denied", key),
                                 Toast.LENGTH_SHORT).show();
@@ -90,5 +85,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void setApplicationProperties(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
+    }
+
+    private void initApplicationProperties() {
+        applicationProperties = new ApplicationProperties(this.getFilesDir().getAbsolutePath());
+        applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS, "http://127.0.0.1:9094");
+        applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME, "test");
+        applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD, "test");
+        applicationProperties.save();
     }
 }

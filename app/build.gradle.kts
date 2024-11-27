@@ -5,12 +5,13 @@ plugins {
 
 android {
     namespace = "org.kemea.isafeco.client"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "org.kemea.isafeco.client"
         minSdk = 29
-        targetSdk = 34
+        //noinspection EditedTargetSdkVersion
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -20,7 +21,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -31,10 +35,14 @@ android {
         viewBinding = true
     }
     packagingOptions {
-        pickFirst("lib/arm64-v8a/libc++_shared.so")
-        pickFirst("lib/armeabi-v7a/libc++_shared.so")
-        pickFirst("lib/x86/libc++_shared.so")
-        pickFirst("lib/x86_64/libc++_shared.so")
+        jniLibs {
+            pickFirsts += setOf(
+                "lib/arm64-v8a/libc++_shared.so",
+                "lib/armeabi-v7a/libc++_shared.so",
+                "lib/x86/libc++_shared.so",
+                "lib/x86_64/libc++_shared.so"
+            )
+        }
     }
 
 }
@@ -48,30 +56,15 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
-    implementation("org.nanohttpd:nanohttpd:2.3.1")
-
-    implementation("androidx.camera:camera-core:1.2.2")
-    implementation("androidx.camera:camera-camera2:1.2.2")
-    implementation("androidx.camera:camera-lifecycle:1.2.2")
-    implementation("androidx.camera:camera-video:1.2.2")
-
-    implementation("androidx.camera:camera-view:1.2.2")
-    implementation("androidx.camera:camera-extensions:1.2.2")
-
-    implementation("com.arthenica:ffmpeg-kit-full:5.1")
-
-    implementation("com.google.code.gson:gson:2.11.0")
-    //implementation ("org.videolan.android:libvlc-all:3.6.0")
-
-    //implementation("libs.media3.exoplayer")
-
-    implementation (libs.media3.exoplayer) // ExoPlayer core library
-    implementation (libs.media3.exoplayer.rtsp)
-    implementation (libs.media3.ui)
-    implementation(libs.firebase.inappmessaging)       // For PlayerView
-
-    implementation("org.videolan.android:libvlc-all:3.5.1")
-
+    implementation(libs.nanohttpd)
+    implementation(libs.ffmpeg.kit.full)
+    implementation(libs.gson)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.exoplayer.dash)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.exoplayer.rtsp)
+    implementation(libs.firebase.inappmessaging)
+    implementation(libs.libvlc.all)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

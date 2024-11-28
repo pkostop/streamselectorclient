@@ -34,4 +34,7 @@ public class Util {
         return new GsonBuilder().create().fromJson(json, _class);
     }
 
+    public static boolean isEmpty(String val) {
+        return val == null || "".equalsIgnoreCase(val) || "null".equalsIgnoreCase(val);
+    }
 }

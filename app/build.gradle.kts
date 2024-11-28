@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "org.kemea.isafeco.client"
-        minSdk = 29
+        minSdk = 21
         //noinspection EditedTargetSdkVersion
         targetSdk = 35
         versionCode = 1
@@ -21,6 +21,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            debug { isDebuggable = false }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

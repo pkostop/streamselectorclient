@@ -69,7 +69,7 @@ public class StreamSelectorClient {
         appendGetParameter(queryString, "contract_id", String.valueOf(contractId));
         appendGetParameter(queryString, "status", String.valueOf(status));
         String url = String.format("%s%s%s", streamSelectorUrl, "/sessions", queryString.toString());
-        byte[] payload = NetUtil.get(url, getHeaders(apiKey), 10000, 10000);
+        byte[] payload = NetUtil.get(url, Collections.emptyMap(), 10000, 10000);
         return Util.fromJson(new String(payload),
                 GetSessionsOutput.class);
     }
@@ -80,7 +80,8 @@ public class StreamSelectorClient {
     }
 
     private void appendGetParameter(StringBuffer paramClause, String paramName, String paramValue) {
-        if (paramClause == null || paramName == null || paramValue == null) return;
+        if (paramClause == null || Util.isEmpty(paramName) || Util.isEmpty(paramValue))
+            return;
         if (paramClause.length() == 0)
             paramClause.append("?");
         else
@@ -90,7 +91,7 @@ public class StreamSelectorClient {
 
     private Map<String, String> postHeaders(String apiKey) {
         Map<String, String> headers = new HashMap<>();
-        //headers.put("Authorization", apiKey);
+        headers.put("Authorization", apiKey);
         headers.put("Content-Type", "application/json");
         headers.put("Accept", "application/json");
         return headers;

@@ -88,17 +88,21 @@ public class StreamInputFragment extends Fragment {
                     if (loginOutput == null)
                         throw new RuntimeException("Login to StreamSelector returned  null. Login failed.");
                     GetSessionsOutput getSessionsOutput = streamSelectorClient.getSessions(50, 0, null, null, loginOutput.getContractId(), null);
-                    if (listView != null) {
-                        List<String> sessionsDesc = Arrays.stream(getSessionsOutput.getSessions()).map(x -> String.format("%s %s", x.getSessionInfo().getId(), x.getSessionInfo().getCreatedAt())).collect(Collectors.toList());
-                        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(requireContext(), R.layout.sessions_spinner, sessionsDesc);
-                        listView.setAdapter(arrayAdapter);
-                        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    requireActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+                            if (listView != null) {
+                                List<String> sessionsDesc = Arrays.stream(getSessionsOutput.getSessions()).map(x -> String.format("%s %s", x.getSessionInfo().getId(), x.getSessionInfo().getCreatedAt())).collect(Collectors.toList());
+                                ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(requireContext(), R.layout.sessions_spinner, sessionsDesc);
+                                listView.setAdapter(arrayAdapter);
+                                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                    @Override
+                                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
+                                    }
+                                });
                             }
-                        });
-                    }
+                        }
+                    });
                 } catch (Exception e) {
                     AppLogger.getLogger().e(Util.stacktrace(e));
                     requireActivity().runOnUiThread(new Runnable() {

@@ -1,13 +1,18 @@
 package org.kemea.isafeco.client.net;
 
-import org.kemea.isafeco.client.streamselector.stubs.input.LoginInput;
-import org.kemea.isafeco.client.streamselector.stubs.input.SessionDestinationStreamInput;
+import org.kemea.isafeco.client.streamselector.stubs.output.ClusterInfo;
 import org.kemea.isafeco.client.streamselector.stubs.output.GetSessionsOutput;
-import org.kemea.isafeco.client.utils.AppLogger;
+import org.kemea.isafeco.client.streamselector.stubs.output.Session;
+import org.kemea.isafeco.client.streamselector.stubs.output.SessionInfo;
+import org.kemea.isafeco.client.streamselector.stubs.output.SessionSourceStreamOutput;
 import org.kemea.isafeco.client.utils.Util;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -16,12 +21,12 @@ public class StreamSelectorRestMock extends NanoHTTPD {
         super(port);
     }
 
-    /*
-        private static Map<Integer, SessionSourceStreamOutput> sessions =
-                new HashMap<Integer, SessionSourceStreamOutput>();
-        AtomicInteger counter = new AtomicInteger(1000);
-        AtomicInteger port = new AtomicInteger(9094);
-      */
+
+    private static Map<Integer, SessionSourceStreamOutput> sessions =
+            new HashMap<Integer, SessionSourceStreamOutput>();
+    AtomicInteger counter = new AtomicInteger(1000);
+    AtomicInteger port = new AtomicInteger(9094);
+
     String sessionSourceStream = "{\n" +
             "session_source_service_protocol : udp,\n" +
             "session_source_service_ip:127.0.0.1,\n" +
@@ -52,50 +57,35 @@ public class StreamSelectorRestMock extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
-        String request = null;
-        try {
-            request = new String(NetUtil.parseInputStream(session.getInputStream()));
-            AppLogger.getLogger().i(request);
-        } catch (Exception e) {
-            AppLogger.getLogger().e(e);
-        }
         if (session.getUri().contains("/sessions/session-source-streams")) {
-            //        int _counter = counter.getAndIncrement();
-            //        int _port = port.getAndIncrement();
-            //String response = String.format(sessionSourceStream, String.valueOf(9094), String.valueOf(1));
-            //        sessions.put(_counter, Util.fromJson(response,
-            //                SessionSourceStreamOutput.class));
-            String response = "OK";
-            Response _response = NanoHTTPD.newFixedLengthResponse(Response.Status.OK, "text/plain", response);
-            _response.setGzipEncoding(false); // Disable GZIP compression
-            _response.addHeader("Connection", "close");
-            _response.addHeader("content-length", String.valueOf(response.length()));
-            return _response;
+            int _counter = counter.getAndIncrement();
+            int _port = port.getAndIncrement();
+            String response = String.format(sessionSourceStream, String.valueOf(_port), String.valueOf(_counter));
+            sessions.put(_counter, Util.fromJson(response,
+                    SessionSourceStreamOutput.class));
+            return newFixedLengthResponse(response);
         } else if (session.getUri().contains("/sessions/session-destination-streams")) {
-            SessionDestinationStreamInput sessionDestinationStreamInput =
-                    Util.fromJson(request, SessionDestinationStreamInput.class);
-            //      SessionSourceStreamOutput sessionSourceStreamOutput = sessions.get(sessionDestinationStreamInput.getSessionId());
-            //    if (sessionSourceStreamOutput == null)
-            //        return newFixedLengthResponse("{\"code\":\"404\", \"message\":\"NOT FOUND\"}");
-            return newFixedLengthResponse(Response.Status.OK, "application/json", String.format(sessionDestinationStream, String.valueOf(9094)));
-        } else if (session.getUri().contains("/sessions")) {
-            List<GetSessionsOutput> getSessionsOutputs = new ArrayList<GetSessionsOutput>();
-/*
+            return newFixedLengthResponse(Response.Status.OK, "application/json", String.format(sessionDestinationStream, String.valueOf(port.get())));
+        } else if (Method.GET.equals(session.getMethod()) && session.getUri().contains("/sessions")) {
+            List<Session> sessionList = new ArrayList<>();
             for (SessionSourceStreamOutput sessionSourceStreamOutput : sessions.values()) {
-                GetSessionsOutput getSessionsOutput = new GetSessionsOutput();
-                getSessionsOutputs.add(getSessionsOutput);
                 SessionInfo sessionInfo = new SessionInfo();
                 sessionInfo.setId(sessionSourceStreamOutput.getSessionId());
                 sessionInfo.setSdp(sessionSourceStreamOutput.getSessionSDP());
-                getSessionsOutput.setSessions(new Session[]{
-                        new Session(sessionInfo, new ClusterInfo(1, 1))
-                });
+                sessionInfo.setCreatedAt(LocalDateTime.now());
+                ClusterInfo clusterInfo = new ClusterInfo();
+                clusterInfo.setClusterId(1);
+                clusterInfo.setContractId(1);
+                Session sess = new Session(sessionInfo, clusterInfo);
+                sessionList.add(sess);
+            }
+            GetSessionsOutput getSessionsOutput = new GetSessionsOutput();
+            getSessionsOutput.setSessions(sessionList.toArray(new Session[0]));
+            getSessionsOutput.setTotal_sessions(sessionList.size());
 
-            }*/
-            return newFixedLengthResponse(Response.Status.OK, "application/json", Util.toJson(getSessionsOutputs.toArray(new GetSessionsOutput[0])));
+            return newFixedLengthResponse(Response.Status.OK, "application/json", Util.toJson(getSessionsOutput));
         } else if (session.getUri().contains("/users/login")) {
-            LoginInput loginInput = Util.fromJson(request, LoginInput.class);
-            String result = String.format(loginUserOutput, "1", loginInput.getLogin());
+            String result = String.format(loginUserOutput, "1", "isafeco");
             return newFixedLengthResponse(Response.Status.OK, "application/json", result);
         }
         return super.serve(session);

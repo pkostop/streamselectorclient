@@ -19,4 +19,5 @@ public class GetSessionsOutput {
     public void setSessions(Session[] sessions) {
         this.sessions = sessions;
     }
+    
 }

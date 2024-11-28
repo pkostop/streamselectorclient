@@ -1,8 +1,6 @@
 package org.kemea.isafeco.client.ui.streamreceiver;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +20,7 @@ import org.kemea.isafeco.client.streamselector.stubs.output.GetSessionsOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.LoginOutput;
 import org.kemea.isafeco.client.utils.AppLogger;
 import org.kemea.isafeco.client.utils.ApplicationProperties;
+import org.kemea.isafeco.client.utils.UserLogin;
 import org.kemea.isafeco.client.utils.Util;
 import org.kemea.isafeco.client.utils.Validator;
 
@@ -44,6 +43,7 @@ public class StreamInputFragment extends Fragment {
         View saveSourceButton = view.findViewById(R.id.save_source_button);
 */
         listView = view.findViewById(R.id.streamsList);
+        (new UserLogin()).logUser(requireContext(), requireActivity());
         getStreamSelectorStreams();
 /*
         saveSourceButton.setOnClickListener(v -> {
@@ -75,23 +75,18 @@ public class StreamInputFragment extends Fragment {
         StreamSelectorClient streamSelectorClient = new StreamSelectorClient(
                 applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS),
                 applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY));
-        String userName = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME);
-        String password = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD);
-        @SuppressLint("HardwareIds") String deviceId = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 LoginOutput loginOutput = null;
                 try {
-                    loginOutput = streamSelectorClient.logUser(userName, password, deviceId);
-                    if (loginOutput == null)
-                        throw new RuntimeException("Login to StreamSelector returned  null. Login failed.");
-                    GetSessionsOutput getSessionsOutput = streamSelectorClient.getSessions(50, 0, null, null, loginOutput.getContractId(), null);
+
+                    GetSessionsOutput getSessionsOutput = streamSelectorClient.getSessions(50, 0, null, null, null, null);
                     requireActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             if (listView != null) {
-                                List<String> sessionsDesc = Arrays.stream(getSessionsOutput.getSessions()).map(x -> String.format("%s %s", x.getSessionInfo().getId(), x.getSessionInfo().getCreatedAt())).collect(Collectors.toList());
+                                List<String> sessionsDesc = Arrays.stream(getSessionsOutput.getSessions()).map(x -> String.format("%s %s %s", x.getSessionInfo().getId(), x.getSessionInfo().getCreatedAt(), x.getSessionInfo().getStatus())).collect(Collectors.toList());
                                 ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(requireContext(), R.layout.sessions_spinner, sessionsDesc);
                                 listView.setAdapter(arrayAdapter);
                                 listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -116,4 +111,6 @@ public class StreamInputFragment extends Fragment {
 
 
     }
+
+
 }

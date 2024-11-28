@@ -7,7 +7,6 @@ import org.kemea.isafeco.client.streamselector.stubs.output.SessionInfo;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionSourceStreamOutput;
 import org.kemea.isafeco.client.utils.Util;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,10 +24,10 @@ public class StreamSelectorRestMock extends NanoHTTPD {
     private static Map<Integer, SessionSourceStreamOutput> sessions =
             new HashMap<Integer, SessionSourceStreamOutput>();
     AtomicInteger counter = new AtomicInteger(1000);
-    AtomicInteger port = new AtomicInteger(9094);
+    AtomicInteger port = new AtomicInteger(9001);
 
     String sessionSourceStream = "{\n" +
-            "session_source_service_protocol : udp,\n" +
+            "session_source_service_protocol : rtp,\n" +
             "session_source_service_ip:127.0.0.1,\n" +
             "session_source_service_port:%s,\n" +
             "session_id:%s,\n" +
@@ -66,13 +65,13 @@ public class StreamSelectorRestMock extends NanoHTTPD {
             return newFixedLengthResponse(response);
         } else if (session.getUri().contains("/sessions/session-destination-streams")) {
             return newFixedLengthResponse(Response.Status.OK, "application/json", String.format(sessionDestinationStream, String.valueOf(port.get())));
-        } else if (Method.GET.equals(session.getMethod()) && session.getUri().contains("/sessions")) {
+        } else if (session.getUri().contains("/sessions")) {
             List<Session> sessionList = new ArrayList<>();
             for (SessionSourceStreamOutput sessionSourceStreamOutput : sessions.values()) {
                 SessionInfo sessionInfo = new SessionInfo();
                 sessionInfo.setId(sessionSourceStreamOutput.getSessionId());
                 sessionInfo.setSdp(sessionSourceStreamOutput.getSessionSDP());
-                sessionInfo.setCreatedAt(LocalDateTime.now());
+                sessionInfo.setCreatedAt(null);
                 ClusterInfo clusterInfo = new ClusterInfo();
                 clusterInfo.setClusterId(1);
                 clusterInfo.setContractId(1);
@@ -82,8 +81,8 @@ public class StreamSelectorRestMock extends NanoHTTPD {
             GetSessionsOutput getSessionsOutput = new GetSessionsOutput();
             getSessionsOutput.setSessions(sessionList.toArray(new Session[0]));
             getSessionsOutput.setTotal_sessions(sessionList.size());
-
-            return newFixedLengthResponse(Response.Status.OK, "application/json", Util.toJson(getSessionsOutput));
+            String response = Util.toJson(getSessionsOutput);
+            return newFixedLengthResponse(response);
         } else if (session.getUri().contains("/users/login")) {
             String result = String.format(loginUserOutput, "1", "isafeco");
             return newFixedLengthResponse(Response.Status.OK, "application/json", result);

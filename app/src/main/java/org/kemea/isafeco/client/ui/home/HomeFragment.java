@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import org.kemea.isafeco.client.CameraRecordingService;
 import org.kemea.isafeco.client.databinding.FragmentHomeBinding;
 import org.kemea.isafeco.client.utils.ApplicationProperties;
+import org.kemea.isafeco.client.utils.UserLogin;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
@@ -53,6 +54,7 @@ public class HomeFragment extends Fragment {
         public void onCheckedChanged(CompoundButton compoundButton, boolean rec) {
             Context context = HomeFragment.this.getActivity().getApplicationContext();
             if (rec) {
+                (new UserLogin()).logUser(requireContext(), requireActivity());
                 String streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS);
                 String streamSelectorAddress = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS);
                 if (streamingAddress == null && streamSelectorAddress == null) {

@@ -62,14 +62,14 @@ public class StreamSelectorClient {
 
     public GetSessionsOutput getSessions(Integer limit, Integer offset, Integer clusterId, Long sessionId, Long contractId, Long status) throws Exception {
         StringBuffer queryString = new StringBuffer();
-        appendGetParameter(queryString, "limit", String.valueOf(limit));
+        /*appendGetParameter(queryString, "limit", String.valueOf(limit));
         appendGetParameter(queryString, "offset", String.valueOf(offset));
         appendGetParameter(queryString, "cluster_id", String.valueOf(clusterId));
         appendGetParameter(queryString, "session_id", String.valueOf(sessionId));
         appendGetParameter(queryString, "contract_id", String.valueOf(contractId));
-        appendGetParameter(queryString, "status", String.valueOf(status));
+        appendGetParameter(queryString, "status", String.valueOf(status));*/
         String url = String.format("%s%s%s", streamSelectorUrl, "/sessions", queryString.toString());
-        byte[] payload = NetUtil.get(url, Collections.emptyMap(), 10000, 10000);
+        byte[] payload = NetUtil.get(url, getHeaders(apiKey), 10000, 10000);
         return Util.fromJson(new String(payload),
                 GetSessionsOutput.class);
     }

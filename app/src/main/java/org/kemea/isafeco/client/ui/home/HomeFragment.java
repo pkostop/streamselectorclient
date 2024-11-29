@@ -17,6 +17,7 @@ import org.kemea.isafeco.client.CameraRecordingService;
 import org.kemea.isafeco.client.databinding.FragmentHomeBinding;
 import org.kemea.isafeco.client.utils.ApplicationProperties;
 import org.kemea.isafeco.client.utils.UserLogin;
+import org.kemea.isafeco.client.utils.Validator;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 
 public class HomeFragment extends Fragment {
 
+    public static final String PREVIEW_RTP_ADDRESS = "rtp://127.0.0.1:9095";
     private FragmentHomeBinding binding;
     MediaPlayer mediaPlayer = null;
     LibVLC libVLC = null;
@@ -53,6 +55,8 @@ public class HomeFragment extends Fragment {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean rec) {
             Context context = HomeFragment.this.getActivity().getApplicationContext();
+            if (!(new Validator()).validateStreamSelectorProperties(applicationProperties, requireContext()))
+                return;
             if (rec) {
                 (new UserLogin()).logUser(requireContext(), requireActivity());
                 String streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS);
@@ -91,7 +95,7 @@ public class HomeFragment extends Fragment {
             ivlcVout.setVideoView(binding.surfaceView);
             ivlcVout.attachViews();
             ivlcVout.setWindowSize(900, 1600);
-            Media media = new Media(libVLC, Uri.parse("rtp://127.0.0.1:9095"));
+            Media media = new Media(libVLC, Uri.parse(PREVIEW_RTP_ADDRESS));
             mediaPlayer.setMedia(media);
             mediaPlayer.setAspectRatio("9:16");
             media.release();

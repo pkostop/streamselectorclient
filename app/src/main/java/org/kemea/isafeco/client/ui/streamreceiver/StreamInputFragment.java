@@ -8,25 +8,24 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import org.kemea.isafeco.client.R;
 import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorClient;
 import org.kemea.isafeco.client.streamselector.stubs.output.GetSessionsOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.LoginOutput;
+import org.kemea.isafeco.client.streamselector.stubs.output.Session;
 import org.kemea.isafeco.client.utils.AppLogger;
 import org.kemea.isafeco.client.utils.ApplicationProperties;
 import org.kemea.isafeco.client.utils.UserLogin;
 import org.kemea.isafeco.client.utils.Util;
 import org.kemea.isafeco.client.utils.Validator;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class StreamInputFragment extends Fragment {
 
@@ -86,13 +85,25 @@ public class StreamInputFragment extends Fragment {
                     requireActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             if (listView != null) {
-                                List<String> sessionsDesc = Arrays.stream(getSessionsOutput.getSessions()).map(x -> String.format("%s %s %s", x.getSessionInfo().getId(), x.getSessionInfo().getCreatedAt(), x.getSessionInfo().getStatus())).collect(Collectors.toList());
-                                ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(requireContext(), R.layout.sessions_spinner, sessionsDesc);
+
+                                ArrayAdapter<Session> arrayAdapter = new ArrayAdapter<Session>(requireContext(), R.layout.sessions_spinner, getSessionsOutput.getSessions()) {
+                                    @NonNull
+                                    @Override
+                                    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                                        View v = LayoutInflater.from(getContext()).inflate(R.layout.list_item, parent, false);
+                                        TextView textView = v.findViewById(R.id.itemText);
+                                        textView.setText(sessionDescription(getSessionsOutput.getSessions()[position]));
+                                        return textView;
+                                    }
+                                };
                                 listView.setAdapter(arrayAdapter);
                                 listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                     @Override
                                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
+                                        Bundle bundle = new Bundle();
+                                        bundle.putString("RTSP_URL", "");
+                                        NavHostFragment.findNavController(StreamInputFragment.this)
+                                                .navigate(R.id.action_streamInputFragment_to_liveStreamFragment, bundle);
                                     }
                                 });
                             }
@@ -110,6 +121,19 @@ public class StreamInputFragment extends Fragment {
         }).start();
 
 
+    }
+
+    @NonNull
+    private static String sessionDescription(Session x) {
+        return String.format("(session id) %s, (created at) %s, (status) %s, (cluster id) %s, (contract id) %s", nvl(x.getSessionInfo().getId()), nvl(x.getSessionInfo().getCreatedAt()), nvl(x.getSessionInfo().getStatus()), nvl(x.getClusterInfo().getClusterId()), nvl(x.getClusterInfo().getContractId()));
+    }
+
+    public static String nvl(String val) {
+        return !Util.isEmpty(val) ? val : "-";
+    }
+
+    public static String nvl(Object val) {
+        return val != null ? String.valueOf(val) : "-";
     }
 
 

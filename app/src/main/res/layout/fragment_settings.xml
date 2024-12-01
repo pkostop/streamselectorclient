@@ -6,79 +6,88 @@
     android:layout_height="match_parent"
     tools:context=".ui.settings.SettingsFragment">
 
-    <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:orientation="vertical"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <EditText
-            android:id="@+id/rtp_stream_destination_address"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:hint="RTP Destination Address"
-            android:inputType="text"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_width="match_parent" />
-
-        <EditText
-            android:id="@+id/stream_selector_address"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:hint="Stream Selector Address"
-            android:inputType="text"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_width="match_parent" />
-
-        <EditText
-            android:id="@+id/stream_selector_username"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:hint="Stream Selector Username"
-            android:inputType="text"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_width="match_parent" />
-
-        <EditText
-            android:id="@+id/stream_selector_password"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:hint="Stream Selector Password"
-            android:inputType="text"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_width="match_parent" />
-
-        <EditText
-            android:id="@+id/stream_selector_apikey"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:hint="Stream Selector Api Key"
-            android:inputType="text"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_width="match_parent" />
-
-        <Button
-            android:id="@+id/save_button"
+        <LinearLayout
+            android:id="@+id/linearLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="149dp"
-            android:layout_marginBottom="149dp"
-            android:text="Save"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-    </LinearLayout>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <EditText
+                android:id="@+id/rtp_stream_destination_address"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:hint="RTP Destination Address"
+                android:inputType="text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_width="match_parent" />
+
+            <EditText
+                android:id="@+id/stream_selector_address"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:hint="Stream Selector Address"
+                android:inputType="text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_width="match_parent" />
+
+            <EditText
+                android:id="@+id/stream_selector_username"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:hint="Stream Selector Username"
+                android:inputType="text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_width="match_parent" />
+
+            <EditText
+                android:id="@+id/stream_selector_password"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:hint="Stream Selector Password"
+                android:inputType="text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_width="match_parent" />
+
+            <EditText
+                android:id="@+id/stream_selector_apikey"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:hint="Stream Selector Api Key"
+                android:inputType="text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_width="match_parent" />
+
+            <Button
+                android:id="@+id/save_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="149dp"
+                android:layout_marginBottom="149dp"
+                android:text="Save"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,7 +7,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -76,9 +78,9 @@ public class CameraRecordingService extends Service {
                     StreamSelectorClient streamSelectorClient = new StreamSelectorClient(address, apiKey);
                     String userName = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME);
                     String password = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD);
-                    SessionSourceStreamOutput sessionSourceStreamOutput = null;
-                    sessionSourceStreamOutput = streamSelectorClient.postSessionsSessionSourceStreams(100L, userName, password, "");
+                    SessionSourceStreamOutput sessionSourceStreamOutput = streamSelectorClient.postSessionsSessionSourceStreams(100L, userName, password, "");
                     String streamingAddress = String.format("rtp://%s:%s", sessionSourceStreamOutput.getSessionSourceServiceIp(), sessionSourceStreamOutput.getSessionSourceServicePort());
+                    showToast(String.format("Streaming to %s", streamingAddress));
                     rtpStreamer.startStreaming(streamingAddress, sdpFilePath, getFilesDir() + "/output.mpg");
                 } catch (Exception e) {
                     AppLogger.getLogger().e(e);
@@ -87,6 +89,20 @@ public class CameraRecordingService extends Service {
             }
         }).start();
 
+    }
+
+    void showToast(String msg) {
+        if (getApplicationContext() != null) {
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                }
+
+            });
+
+        }
     }
 
     protected NotificationChannel getNotificationChannel() {
@@ -101,8 +117,11 @@ public class CameraRecordingService extends Service {
     }
 
     protected void createNotification(NotificationChannel notificationChannel) {
-        Notification notification = new NotificationCompat.Builder(this, CAMERA_RECORDING_CHANNEL).
-                setContentTitle(ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING).setChannelId(notificationChannel.getId()).build();
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CAMERA_RECORDING_CHANNEL);
+        builder.setContentTitle(ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING);
+        if (notificationChannel != null)
+            builder.setChannelId(notificationChannel.getId());
+        Notification notification = builder.build();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             startForeground(Integer.parseInt(CHANNEL_ID), notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA);
         } else {

@@ -1,5 +1,8 @@
 package org.kemea.isafeco.client.utils;
 
+import android.app.Activity;
+import android.widget.Toast;
+
 import com.google.gson.GsonBuilder;
 
 import java.io.ByteArrayOutputStream;
@@ -36,6 +39,14 @@ public class Util {
 
     public static boolean isEmpty(String val) {
         return val == null || "".equalsIgnoreCase(val) || "null".equalsIgnoreCase(val);
+    }
+
+    public static void toast(Activity activity, String msg) {
+        activity.runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
 }

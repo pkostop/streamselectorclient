@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS, "http://127.0.0.1:9094");
         applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME, "test");
         applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD, "test");
+        applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY, "test");
         applicationProperties.save();
     }
 }

@@ -2,7 +2,9 @@ package org.kemea.isafeco.client.streamselector.stubs.output;
 
 import com.google.gson.annotations.SerializedName;
 
-public class Session {
+import java.io.Serializable;
+
+public class Session implements Serializable {
     @SerializedName("session_info")
     SessionInfo sessionInfo;
     @SerializedName("cluster_info")

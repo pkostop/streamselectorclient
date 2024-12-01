@@ -34,11 +34,12 @@ public class StreamSelectorRestMock extends NanoHTTPD {
             "session_encryption_key:null\n" +
             "}";
     String sessionDestinationStream =
-            "{\"session_destination_service_protocol\": \"http\"" +
-                    "\"session_destination_service_ip\":\"127.0.0.1\"" +
-                    "\"session_destination_service_port\":\"%s\"" +
-                    "\"session_sdp:\"\"" +
-                    "\"session_decryption_key:\"\"";
+            "{session_destination_service_protocol: rtp," +
+                    "session_destination_service_ip:127.0.0.1," +
+                    "session_destination_service_port:%s," +
+                    "session_sdp:\"\"," +
+                    "session_decryption_key:\"\"" +
+                    "}";
 
     String loginUserOutput = "{\n" +
             "\"id\":\"%s\"," +
@@ -58,12 +59,13 @@ public class StreamSelectorRestMock extends NanoHTTPD {
     public Response serve(IHTTPSession session) {
         if (session.getUri().contains("/sessions/session-source-streams")) {
             int _counter = counter.getAndIncrement();
-            int _port = port.getAndIncrement();
+            int _port = port.incrementAndGet();
             String response = String.format(sessionSourceStream, String.valueOf(_port), String.valueOf(_counter));
             sessions.put(_counter, Util.fromJson(response,
                     SessionSourceStreamOutput.class));
             return newFixedLengthResponse(response);
         } else if (session.getUri().contains("/sessions/session-destination-streams")) {
+
             return newFixedLengthResponse(Response.Status.OK, "application/json", String.format(sessionDestinationStream, String.valueOf(port.get())));
         } else if (session.getUri().contains("/sessions")) {
             List<Session> sessionList = new ArrayList<>();

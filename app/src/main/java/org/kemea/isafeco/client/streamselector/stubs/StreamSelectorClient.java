@@ -1,5 +1,7 @@
 package org.kemea.isafeco.client.streamselector.stubs;
 
+import android.content.Context;
+
 import org.kemea.isafeco.client.net.NetUtil;
 import org.kemea.isafeco.client.streamselector.stubs.input.LoginInput;
 import org.kemea.isafeco.client.streamselector.stubs.input.SessionDestinationStreamInput;
@@ -8,7 +10,9 @@ import org.kemea.isafeco.client.streamselector.stubs.output.GetSessionsOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.LoginOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionDestinationStreamOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionSourceStreamOutput;
+import org.kemea.isafeco.client.utils.ApplicationProperties;
 import org.kemea.isafeco.client.utils.Util;
+import org.kemea.isafeco.client.utils.Validator;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,12 +20,21 @@ import java.util.Map;
 
 public class StreamSelectorClient {
 
+    private static final int READ_TIMEOUT = 10000;
+    private static final int CONNECT_TIMEOUT = 10000;
     String streamSelectorUrl;
     String apiKey;
 
     public StreamSelectorClient(String streamSelectorUrl, String apiKey) {
         this.streamSelectorUrl = streamSelectorUrl;
         this.apiKey = apiKey;
+    }
+
+    public StreamSelectorClient(Context context) {
+        ApplicationProperties applicationProperties = new ApplicationProperties(context.getFilesDir().getAbsolutePath());
+        (new Validator()).validateStreamSelectorProperties(applicationProperties, context);
+        this.streamSelectorUrl = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS);
+        this.apiKey = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY);
     }
 
     public SessionSourceStreamOutput postSessionsSessionSourceStreams(Long applicationId, String userLogin, String userPassword, String sessionSdp) throws Exception {
@@ -50,7 +63,7 @@ public class StreamSelectorClient {
                 LoginOutput.class);
     }
 
-    public SessionDestinationStreamOutput postSessionsSessionDestinationStreams(Integer sessionId) throws Exception {
+    public SessionDestinationStreamOutput postSessionsSessionDestinationStreams(Long sessionId) throws Exception {
         SessionDestinationStreamInput sessionDestinationStreamInput = new SessionDestinationStreamInput();
         sessionDestinationStreamInput.setSessionId(sessionId);
         String json = Util.toJson(sessionDestinationStreamInput);
@@ -62,17 +75,18 @@ public class StreamSelectorClient {
 
     public GetSessionsOutput getSessions(Integer limit, Integer offset, Integer clusterId, Long sessionId, Long contractId, Long status) throws Exception {
         StringBuffer queryString = new StringBuffer();
-        /*appendGetParameter(queryString, "limit", String.valueOf(limit));
+        appendGetParameter(queryString, "limit", String.valueOf(limit));
         appendGetParameter(queryString, "offset", String.valueOf(offset));
         appendGetParameter(queryString, "cluster_id", String.valueOf(clusterId));
         appendGetParameter(queryString, "session_id", String.valueOf(sessionId));
         appendGetParameter(queryString, "contract_id", String.valueOf(contractId));
-        appendGetParameter(queryString, "status", String.valueOf(status));*/
+        appendGetParameter(queryString, "status", String.valueOf(status));
         String url = String.format("%s%s%s", streamSelectorUrl, "/sessions", queryString.toString());
-        byte[] payload = NetUtil.get(url, getHeaders(apiKey), 10000, 10000);
+        byte[] payload = NetUtil.get(url, getHeaders(apiKey), CONNECT_TIMEOUT, READ_TIMEOUT);
         return Util.fromJson(new String(payload),
                 GetSessionsOutput.class);
     }
+
 
     public void postStopSessionByID(Long sessionId) throws Exception {
         String url = String.format("%s%s/%s/stop", streamSelectorUrl, "/sessions", String.valueOf(sessionId));

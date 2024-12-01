@@ -1,5 +1,6 @@
 package org.kemea.isafeco.client.ui.streamreceiver;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +10,6 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,18 +19,16 @@ import androidx.navigation.fragment.NavHostFragment;
 import org.kemea.isafeco.client.R;
 import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorClient;
 import org.kemea.isafeco.client.streamselector.stubs.output.GetSessionsOutput;
-import org.kemea.isafeco.client.streamselector.stubs.output.LoginOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.Session;
 import org.kemea.isafeco.client.utils.AppLogger;
-import org.kemea.isafeco.client.utils.ApplicationProperties;
 import org.kemea.isafeco.client.utils.UserLogin;
 import org.kemea.isafeco.client.utils.Util;
-import org.kemea.isafeco.client.utils.Validator;
 
 public class StreamInputFragment extends Fragment {
 
     private EditText rtpStreamAddressInput;
     ListView listView;
+
 
     @Nullable
     @Override
@@ -65,62 +63,45 @@ public class StreamInputFragment extends Fragment {
     }
 
     private void getStreamSelectorStreams() {
-        if (getContext() == null) {
-            AppLogger.getLogger().e("No context found!!!");
-            return;
-        }
-        ApplicationProperties applicationProperties = new ApplicationProperties(getContext().getFilesDir().getAbsolutePath());
-        (new Validator()).validateStreamSelectorProperties(applicationProperties, requireContext());
-        StreamSelectorClient streamSelectorClient = new StreamSelectorClient(
-                applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS),
-                applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY));
-
+        StreamSelectorClient streamSelectorClient = new StreamSelectorClient(requireContext());
         new Thread(new Runnable() {
+            GetSessionsOutput getSessionsOutput = null;
+
             @Override
             public void run() {
-                LoginOutput loginOutput = null;
                 try {
-
-                    GetSessionsOutput getSessionsOutput = streamSelectorClient.getSessions(50, 0, null, null, null, null);
+                    getSessionsOutput = streamSelectorClient.getSessions(50, 0, null, null, null, null);
+                } catch (Exception e) {
+                    AppLogger.getLogger().e(Util.stacktrace(e));
+                    Util.toast(requireActivity(), String.format("Error: %s", e.getMessage()));
+                }
+                if (getSessionsOutput != null) {
                     requireActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             if (listView != null) {
-
-                                ArrayAdapter<Session> arrayAdapter = new ArrayAdapter<Session>(requireContext(), R.layout.sessions_spinner, getSessionsOutput.getSessions()) {
-                                    @NonNull
-                                    @Override
-                                    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-                                        View v = LayoutInflater.from(getContext()).inflate(R.layout.list_item, parent, false);
-                                        TextView textView = v.findViewById(R.id.itemText);
-                                        textView.setText(sessionDescription(getSessionsOutput.getSessions()[position]));
-                                        return textView;
-                                    }
-                                };
+                                ArrayAdapter<Session> arrayAdapter = createSessionsListViewAdapter(getSessionsOutput);
                                 listView.setAdapter(arrayAdapter);
-                                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                                    @Override
-                                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                                        Bundle bundle = new Bundle();
-                                        bundle.putString("RTSP_URL", "");
-                                        NavHostFragment.findNavController(StreamInputFragment.this)
-                                                .navigate(R.id.action_streamInputFragment_to_liveStreamFragment, bundle);
-                                    }
-                                });
+                                listView.setOnItemClickListener(new SessionClickListener(streamSelectorClient, requireActivity()));
                             }
-                        }
-                    });
-                } catch (Exception e) {
-                    AppLogger.getLogger().e(Util.stacktrace(e));
-                    requireActivity().runOnUiThread(new Runnable() {
-                        public void run() {
-                            Toast.makeText(getContext(), String.format("Error: %s ", e.getMessage()), Toast.LENGTH_LONG).show();
                         }
                     });
                 }
             }
         }).start();
+    }
 
-
+    @NonNull
+    private ArrayAdapter<Session> createSessionsListViewAdapter(GetSessionsOutput getSessionsOutput) {
+        return new ArrayAdapter<Session>(requireContext(), R.layout.sessions_spinner, getSessionsOutput.getSessions()) {
+            @NonNull
+            @Override
+            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View v = LayoutInflater.from(getContext()).inflate(R.layout.list_item, parent, false);
+                TextView textView = v.findViewById(R.id.itemText);
+                textView.setText(sessionDescription(getSessionsOutput.getSessions()[position]));
+                return textView;
+            }
+        };
     }
 
     @NonNull
@@ -136,5 +117,22 @@ public class StreamInputFragment extends Fragment {
         return val != null ? String.valueOf(val) : "-";
     }
 
+    class SessionClickListener implements AdapterView.OnItemClickListener {
+        StreamSelectorClient streamSelectorClient;
+        Activity activity;
 
+        public SessionClickListener(StreamSelectorClient streamSelectorClient, Activity activity) {
+            this.streamSelectorClient = streamSelectorClient;
+            this.activity = activity;
+        }
+
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            Session session = (Session) adapterView.getAdapter().getItem(i);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("SESSION", session);
+            NavHostFragment.findNavController(StreamInputFragment.this)
+                    .navigate(R.id.action_streamInputFragment_to_liveStreamFragment, bundle);
+        }
+    }
 }

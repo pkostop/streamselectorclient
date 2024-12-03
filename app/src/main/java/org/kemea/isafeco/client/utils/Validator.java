@@ -5,6 +5,10 @@ import android.widget.Toast;
 
 public class Validator {
     public boolean validateStreamSelectorProperties(ApplicationProperties props, Context context) {
+        if (!isEmpty(props.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS))) {
+            return true;
+        }
+
         if (isEmpty(props.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS))) {
             Toast.makeText(context, "Empty Stream Selector Address. Go to settings tab", Toast.LENGTH_LONG).show();
             return false;

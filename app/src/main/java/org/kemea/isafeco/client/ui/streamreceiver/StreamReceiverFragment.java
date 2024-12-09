@@ -1,7 +1,5 @@
 package org.kemea.isafeco.client.ui.streamreceiver;
 
-import static androidx.media3.exoplayer.SimpleExoPlayer.*;
-
 import android.annotation.SuppressLint;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,8 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
@@ -61,14 +57,13 @@ public class StreamReceiverFragment extends Fragment {
         if (getArguments() != null) {
             rtspUrl = getArguments().getString("RTSP_URL", "");
             //FIXME: DELETE THE HARDCODE URL BELOW:
-            rtspUrl = "rtsp://192.168.1.9:8554/live.stream";
+            //rtspUrl = "rtsp://192.168.1.9:8554/live.stream";
         }
 
         if (rtspUrl == null || rtspUrl.isEmpty()) {
             Toast.makeText(requireContext(), "No RTSP URL provided", Toast.LENGTH_SHORT).show();
             return;
         }
-
         //call init to initialize ExoPlayer
         initializePlayer();
     }

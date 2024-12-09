@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".ui.streamreceiver.StreamReceiverFragment">
 
-
     <EditText
         android:id="@+id/rtp_stream_receive_address"
         android:layout_width="380dp"

@@ -7,10 +7,11 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
@@ -27,6 +28,7 @@ public class CameraRecordingService extends Service {
     public static final String ISAFECO_CLIENT_NOTIFICATION_CHANNEL = "IsafecoClientNotificationChannel";
     public static final String ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING = "ISAFECO Video Streaming Application is recording";
     RTPStreamer rtpStreamer;
+
     ApplicationProperties applicationProperties = null;
     String sdpFilePath = null;
     static final String CHANNEL_ID = "100";
@@ -45,15 +47,15 @@ public class CameraRecordingService extends Service {
             NotificationChannel notificationChannel = getNotificationChannel();
             createNotification(notificationChannel);
             startStreaming();
-            rtpStreamer = new RTPStreamer();
         } catch (Exception e) {
             AppLogger.getLogger().e(Util.stacktrace(e));
-            Toast.makeText(this, "Cannot Start Service", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, String.format("Cannot Start Service: %s", e.getMessage()), Toast.LENGTH_LONG).show();
         }
+
     }
 
-    @Nullable
     private void startStreaming() throws Exception {
+        rtpStreamer = new RTPStreamer(getApplicationContext());
         String streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS);
         if (streamingAddress != null && !"".equalsIgnoreCase(streamingAddress)) {
             rtpStreamer.startStreaming(streamingAddress, sdpFilePath, getFilesDir() + "/output.mpg");
@@ -63,20 +65,22 @@ public class CameraRecordingService extends Service {
         if (streamingAddress != null && !"".equalsIgnoreCase(streamingAddress)) {
             trasmitToStreamSelector();
         }
+
     }
 
-    @NonNull
     private void trasmitToStreamSelector() throws Exception {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    StreamSelectorClient streamSelectorClient = new StreamSelectorClient(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS));
+                    String apiKey = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY);
+                    String address = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS);
+                    StreamSelectorClient streamSelectorClient = new StreamSelectorClient(address, apiKey);
                     String userName = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME);
                     String password = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD);
-                    SessionSourceStreamOutput sessionSourceStreamOutput = null;
-                    sessionSourceStreamOutput = streamSelectorClient.postSessionsSessionSourceStreams(100L, userName, password, "");
+                    SessionSourceStreamOutput sessionSourceStreamOutput = streamSelectorClient.postSessionsSessionSourceStreams(100L, userName, password, "");
                     String streamingAddress = String.format("rtp://%s:%s", sessionSourceStreamOutput.getSessionSourceServiceIp(), sessionSourceStreamOutput.getSessionSourceServicePort());
+                    showToast(String.format("Streaming to %s", streamingAddress));
                     rtpStreamer.startStreaming(streamingAddress, sdpFilePath, getFilesDir() + "/output.mpg");
                 } catch (Exception e) {
                     AppLogger.getLogger().e(e);
@@ -85,6 +89,20 @@ public class CameraRecordingService extends Service {
             }
         }).start();
 
+    }
+
+    void showToast(String msg) {
+        if (getApplicationContext() != null) {
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                }
+
+            });
+
+        }
     }
 
     protected NotificationChannel getNotificationChannel() {
@@ -99,12 +117,15 @@ public class CameraRecordingService extends Service {
     }
 
     protected void createNotification(NotificationChannel notificationChannel) {
-        Notification notification = new NotificationCompat.Builder(this, CAMERA_RECORDING_CHANNEL).
-                setContentTitle(ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING).setChannelId(notificationChannel.getId()).build();
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CAMERA_RECORDING_CHANNEL);
+        builder.setContentTitle(ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING);
+        if (notificationChannel != null)
+            builder.setChannelId(notificationChannel.getId());
+        Notification notification = builder.build();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            startForeground(new Integer(CHANNEL_ID), notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA);
+            startForeground(Integer.parseInt(CHANNEL_ID), notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA);
         } else {
-            startForeground(new Integer(CHANNEL_ID), notification);
+            startForeground(Integer.parseInt(CHANNEL_ID), notification);
         }
     }
 

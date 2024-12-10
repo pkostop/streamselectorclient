@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class VideoPlayerActivity extends AppCompatActivity {
 
     private VideoView videoView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -18,7 +19,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         // Get the RTSP URL passed from the previous activity
         String rtspUrl = getIntent().getStringExtra("RTSP_URL");
-        videoView = findViewById(R.id.player_view);
+        //videoView = findViewById(R.id.player_view);
 
         // Set the URI for the VideoView
         videoView.setVideoURI(Uri.parse(rtspUrl));

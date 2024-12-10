@@ -1,17 +1,13 @@
 package org.kemea.isafeco.client.utils;
 
+import android.app.Activity;
+import android.widget.Toast;
+
 import com.google.gson.GsonBuilder;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Iterator;
-import java.util.Map;
 
 public class Util {
 
@@ -41,5 +37,16 @@ public class Util {
         return new GsonBuilder().create().fromJson(json, _class);
     }
 
+    public static boolean isEmpty(String val) {
+        return val == null || "".equalsIgnoreCase(val) || "null".equalsIgnoreCase(val);
+    }
+
+    public static void toast(Activity activity, String msg) {
+        activity.runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
 
 }

@@ -2,6 +2,7 @@ package org.kemea.isafeco.client.ui.home;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,37 +11,34 @@ import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.camera.core.Camera;
-import androidx.camera.core.CameraSelector;
-import androidx.camera.core.Preview;
-import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.view.PreviewView;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-
-import com.google.common.util.concurrent.ListenableFuture;
 
 import org.kemea.isafeco.client.CameraRecordingService;
 import org.kemea.isafeco.client.databinding.FragmentHomeBinding;
 import org.kemea.isafeco.client.utils.ApplicationProperties;
+import org.kemea.isafeco.client.utils.UserLogin;
+import org.kemea.isafeco.client.utils.Validator;
+import org.videolan.libvlc.LibVLC;
+import org.videolan.libvlc.Media;
+import org.videolan.libvlc.MediaPlayer;
+import org.videolan.libvlc.interfaces.IVLCVout;
 
-import java.util.concurrent.ExecutionException;
+import java.util.ArrayList;
 
 public class HomeFragment extends Fragment {
 
+    public static final String PREVIEW_RTP_ADDRESS = "rtp://127.0.0.1:9095";
     private FragmentHomeBinding binding;
-    PreviewView viewFinder;
+    MediaPlayer mediaPlayer = null;
+    LibVLC libVLC = null;
     ApplicationProperties applicationProperties;
     Intent intent;
 
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel =
-                new ViewModelProvider(this).get(HomeViewModel.class);
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-        viewFinder = binding.viewFinder;
         binding.cameraSwitch.setOnCheckedChangeListener(new CameraButtonChangeListener());
         applicationProperties = new ApplicationProperties(getActivity().getFilesDir().getAbsolutePath());
         return root;
@@ -53,31 +51,14 @@ public class HomeFragment extends Fragment {
         binding = null;
     }
 
-    private void startCamera() {
-        ListenableFuture<ProcessCameraProvider> p = ProcessCameraProvider.getInstance(getActivity());
-        p.addListener(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ProcessCameraProvider processCameraProvider = p.get();
-                    Preview preview = (new Preview.Builder()).build();
-                    preview.setSurfaceProvider(binding.viewFinder.getSurfaceProvider());
-                    processCameraProvider.unbindAll();
-                    Camera camera = processCameraProvider.bindToLifecycle(getActivity(), CameraSelector.DEFAULT_BACK_CAMERA, preview);
-
-                } catch (ExecutionException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }, ContextCompat.getMainExecutor(getActivity()));
-    }
-
-
     class CameraButtonChangeListener implements CompoundButton.OnCheckedChangeListener {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean rec) {
             Context context = HomeFragment.this.getActivity().getApplicationContext();
+            if (!(new Validator()).validateStreamSelectorProperties(applicationProperties, requireContext()))
+                return;
             if (rec) {
+                (new UserLogin()).logUser(requireContext(), requireActivity());
                 String streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS);
                 String streamSelectorAddress = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS);
                 if (streamingAddress == null && streamSelectorAddress == null) {
@@ -88,9 +69,37 @@ public class HomeFragment extends Fragment {
 
                 intent = new Intent(HomeFragment.this.getActivity(), CameraRecordingService.class);
                 context.startForegroundService(intent);
+                startPreview();
             } else {
                 context.stopService(intent);
+                stopPreview();
             }
+        }
+
+        private void stopPreview() {
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.release();
+            }
+            if (libVLC != null) {
+                libVLC.release();
+            }
+        }
+
+        private void startPreview() {
+            ArrayList<String> options = new ArrayList<>();
+            options.add("--network-caching=300"); // Reduce latency
+            libVLC = new LibVLC(getContext(), options);
+            mediaPlayer = new MediaPlayer(libVLC);
+            IVLCVout ivlcVout = mediaPlayer.getVLCVout();
+            ivlcVout.setVideoView(binding.surfaceView);
+            ivlcVout.attachViews();
+            ivlcVout.setWindowSize(900, 1600);
+            Media media = new Media(libVLC, Uri.parse(PREVIEW_RTP_ADDRESS));
+            mediaPlayer.setMedia(media);
+            mediaPlayer.setAspectRatio("9:16");
+            media.release();
+            mediaPlayer.play();
         }
     }
 }

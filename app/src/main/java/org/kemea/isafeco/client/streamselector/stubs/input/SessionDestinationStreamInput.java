@@ -4,15 +4,15 @@ import com.google.gson.annotations.SerializedName;
 
 public class SessionDestinationStreamInput {
 
-	@SerializedName(value = "session_id")
-	Integer sessionId;
+    @SerializedName(value = "session_id")
+    Long sessionId;
 
-	public Integer getSessionId() {
-		return sessionId;
-	}
+    public Long getSessionId() {
+        return sessionId;
+    }
 
-	public void setSessionId(Integer sessionId) {
-		this.sessionId = sessionId;
-	}
+    public void setSessionId(Long sessionId) {
+        this.sessionId = sessionId;
+    }
 
 }

@@ -5,10 +5,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
@@ -27,14 +29,28 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import org.kemea.isafeco.client.R;
+import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorClient;
+import org.kemea.isafeco.client.streamselector.stubs.output.Session;
+import org.kemea.isafeco.client.streamselector.stubs.output.SessionDestinationStreamOutput;
+import org.kemea.isafeco.client.utils.AppLogger;
+import org.kemea.isafeco.client.utils.Util;
+import org.videolan.libvlc.LibVLC;
+import org.videolan.libvlc.Media;
+import org.videolan.libvlc.MediaPlayer;
+import org.videolan.libvlc.interfaces.IVLCVout;
+
+import java.util.ArrayList;
 
 public class StreamReceiverFragment extends Fragment {
     private PlayerView playerView;
+    private SurfaceView sessionSurfaceView;
     private ExoPlayer exoPlayer;
+    private LibVLC libVLC;
+    MediaPlayer mediaPlayer = null;
     private NavController navController;
 
     private static final String TAG = "LiveStreamFragment";
-    private String rtspUrl = "rtsp://192.168.1.9:8554/live.stream";
+
 
     @SuppressLint("MissingInflatedId")
     @Nullable
@@ -44,7 +60,8 @@ public class StreamReceiverFragment extends Fragment {
         Log.d(TAG, ">>> Player onCreateView()");
 
         View view = inflater.inflate(R.layout.fragment_video_player, container, false);
-        playerView = view.findViewById(R.id.player_view);
+        //playerView = view.findViewById(R.id.player_view);
+        sessionSurfaceView = view.findViewById(R.id.sessionSurfaceView);
         return view;
     }
 
@@ -52,24 +69,41 @@ public class StreamReceiverFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         navController = Navigation.findNavController(view);
+        Session session = (Session) getArguments().get("SESSION");
 
-        // Retrieve RTSP URL from arguments
-        if (getArguments() != null) {
-            rtspUrl = getArguments().getString("RTSP_URL", "");
-            //FIXME: DELETE THE HARDCODE URL BELOW:
-            //rtspUrl = "rtsp://192.168.1.9:8554/live.stream";
-        }
+        if (session == null)
+            Toast.makeText(requireContext(), "Error! StreamSelector Session not found!", Toast.LENGTH_LONG).show();
+        startStreamingSession(session);
+    }
 
-        if (rtspUrl == null || rtspUrl.isEmpty()) {
-            Toast.makeText(requireContext(), "No RTSP URL provided", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        //call init to initialize ExoPlayer
-        initializePlayer();
+    private void startStreamingSession(Session session) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                StreamSelectorClient streamSelectorClient = new StreamSelectorClient(requireContext());
+                SessionDestinationStreamOutput sessionDestinationStreamOutput = null;
+                try {
+                    sessionDestinationStreamOutput = streamSelectorClient.postSessionsSessionDestinationStreams(session.getSessionInfo().getId());
+                } catch (Exception e) {
+                    AppLogger.getLogger().e(e);
+                    Util.toast(requireActivity(), String.format("Error: %s", e.getMessage()));
+                }
+                if (sessionDestinationStreamOutput == null) return;
+                String rtpUrl = String.format("%s://%s:%s", sessionDestinationStreamOutput.getSessionDestinationServiceProtocol(), sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort());
+                Util.toast(requireActivity(), String.format("Streaming: %s", rtpUrl));
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //initializeExoPlayer(rtpUrl);
+                        initVlcPlayer(rtpUrl);
+                    }
+                });
+            }
+        }).start();
     }
 
     @OptIn(markerClass = UnstableApi.class)
-    private void initializePlayer() {
+    private void initializeExoPlayer(String rtpUrl) {
 
         if (playerView == null) {
             Log.e(TAG, "*** PlayerView is null. Ensure the layout is inflated correctly.");
@@ -107,7 +141,7 @@ public class StreamReceiverFragment extends Fragment {
 
         try {
             // Create a MediaItem with the RTSP URL
-            MediaItem mediaItem = MediaItem.fromUri(Uri.parse(rtspUrl));
+            MediaItem mediaItem = MediaItem.fromUri(Uri.parse(rtpUrl));
 
             // Set the media item to the player
             exoPlayer.setMediaItem(mediaItem);
@@ -138,6 +172,22 @@ public class StreamReceiverFragment extends Fragment {
         }
     }
 
+    private void initVlcPlayer(String url) {
+        ArrayList<String> options = new ArrayList<>();
+        options.add("--network-caching=300"); // Reduce latency
+        libVLC = new LibVLC(getContext(), options);
+        mediaPlayer = new MediaPlayer(libVLC);
+        IVLCVout ivlcVout = mediaPlayer.getVLCVout();
+        ivlcVout.setVideoView(sessionSurfaceView);
+        ivlcVout.attachViews();
+        ivlcVout.setWindowSize(900, 1600);
+        Media media = new Media(libVLC, Uri.parse(url));
+        mediaPlayer.setMedia(media);
+        mediaPlayer.setAspectRatio("9:16");
+        media.release();
+        mediaPlayer.play();
+    }
+
     @Override
     public void onPause() {
         super.onPause();
@@ -163,6 +213,7 @@ public class StreamReceiverFragment extends Fragment {
             exoPlayer = null;
         }
     }
+
     public void handleOnBackPressed() {
         navController.navigateUp();
     }

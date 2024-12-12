@@ -1,7 +1,10 @@
 package org.kemea.isafeco.client.ui.streamreceiver;
 
+import static android.content.ContentValues.TAG;
+
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,6 +41,7 @@ public class StreamInputFragment extends Fragment {
         streamSelectorService = new StreamSelectorService(requireActivity());
 /*
         rtpStreamAddressInput = view.findViewById(R.id.rtp_stream_receive_address);
+
         View saveSourceButton = view.findViewById(R.id.save_source_button);
 */
         listView = view.findViewById(R.id.streamsList);

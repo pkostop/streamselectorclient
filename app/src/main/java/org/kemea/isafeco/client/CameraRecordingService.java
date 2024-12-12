@@ -16,7 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import org.kemea.isafeco.client.net.RTPStreamer;
-import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorClient;
+import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorService;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionSourceStreamOutput;
 import org.kemea.isafeco.client.utils.AppLogger;
 import org.kemea.isafeco.client.utils.ApplicationProperties;
@@ -28,6 +28,7 @@ public class CameraRecordingService extends Service {
     public static final String ISAFECO_CLIENT_NOTIFICATION_CHANNEL = "IsafecoClientNotificationChannel";
     public static final String ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING = "ISAFECO Video Streaming Application is recording";
     RTPStreamer rtpStreamer;
+    StreamSelectorService streamSelectorService;
 
     ApplicationProperties applicationProperties = null;
     String sdpFilePath = null;
@@ -44,48 +45,45 @@ public class CameraRecordingService extends Service {
         applicationProperties = new ApplicationProperties(this.getFilesDir().getAbsolutePath());
         sdpFilePath = String.format("%s/stream.sdp", getFilesDir());
         try {
-            NotificationChannel notificationChannel = getNotificationChannel();
-            createNotification(notificationChannel);
+            streamSelectorService = new StreamSelectorService(getApplicationContext());
+            rtpStreamer = new RTPStreamer(getApplicationContext());
+            createNotification(getNotificationChannel());
             startStreaming();
         } catch (Exception e) {
             AppLogger.getLogger().e(Util.stacktrace(e));
             Toast.makeText(this, String.format("Cannot Start Service: %s", e.getMessage()), Toast.LENGTH_LONG).show();
         }
-
     }
 
     private void startStreaming() throws Exception {
-        rtpStreamer = new RTPStreamer(getApplicationContext());
-        String streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS);
-        if (streamingAddress != null && !"".equalsIgnoreCase(streamingAddress)) {
-            rtpStreamer.startStreaming(streamingAddress, sdpFilePath, getFilesDir() + "/output.mpg");
+        if (rtpStreamer == null || applicationProperties == null)
+            return;
+
+        String streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS);
+        if (!Util.isEmpty(streamingAddress)) {
+            trasmitToStreamSelector();
             return;
         }
-        streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS);
-        if (streamingAddress != null && !"".equalsIgnoreCase(streamingAddress)) {
-            trasmitToStreamSelector();
+        streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS);
+        if (!Util.isEmpty(streamingAddress)) {
+            rtpStreamer.startStreaming(streamingAddress, sdpFilePath);
         }
-
     }
 
     private void trasmitToStreamSelector() throws Exception {
+        if (streamSelectorService == null || rtpStreamer == null)
+            return;
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    String apiKey = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY);
-                    String address = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS);
-                    StreamSelectorClient streamSelectorClient = new StreamSelectorClient(address, apiKey);
-                    String userName = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME);
-                    String password = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD);
-                    SessionSourceStreamOutput sessionSourceStreamOutput = streamSelectorClient.postSessionsSessionSourceStreams(100L, userName, password, "");
-                    String streamingAddress = String.format("rtp://%s:%s", sessionSourceStreamOutput.getSessionSourceServiceIp(), sessionSourceStreamOutput.getSessionSourceServicePort());
+                    SessionSourceStreamOutput sessionSourceStreamOutput = streamSelectorService.postSessionsSessionSourceStreams(1L, "");
+                    String streamingAddress = String.format("%s://%s:%s", sessionSourceStreamOutput.getSessionSourceServiceProtocol(), sessionSourceStreamOutput.getSessionSourceServiceIp(), sessionSourceStreamOutput.getSessionSourceServicePort());
                     showToast(String.format("Streaming to %s", streamingAddress));
-                    rtpStreamer.startStreaming(streamingAddress, sdpFilePath, getFilesDir() + "/output.mpg");
+                    rtpStreamer.startStreaming(streamingAddress, sdpFilePath);
                 } catch (Exception e) {
                     AppLogger.getLogger().e(e);
                 }
-
             }
         }).start();
 

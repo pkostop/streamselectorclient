@@ -1,8 +1,7 @@
-package org.kemea.isafeco.client.streamselector.stubs;
+package org.kemea.isafeco.client.net;
 
 import android.content.Context;
 
-import org.kemea.isafeco.client.net.NetUtil;
 import org.kemea.isafeco.client.streamselector.stubs.input.LoginInput;
 import org.kemea.isafeco.client.streamselector.stubs.input.SessionDestinationStreamInput;
 import org.kemea.isafeco.client.streamselector.stubs.input.SessionSourceStreamInput;
@@ -10,11 +9,8 @@ import org.kemea.isafeco.client.streamselector.stubs.output.GetSessionsOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.LoginOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionDestinationStreamOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionSourceStreamOutput;
-import org.kemea.isafeco.client.utils.ApplicationProperties;
 import org.kemea.isafeco.client.utils.Util;
-import org.kemea.isafeco.client.utils.Validator;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,21 +19,13 @@ public class StreamSelectorClient {
     private static final int READ_TIMEOUT = 10000;
     private static final int CONNECT_TIMEOUT = 10000;
     String streamSelectorUrl;
-    String apiKey;
+    Context context;
 
-    public StreamSelectorClient(String streamSelectorUrl, String apiKey) {
+    public StreamSelectorClient(String streamSelectorUrl) {
         this.streamSelectorUrl = streamSelectorUrl;
-        this.apiKey = apiKey;
     }
 
-    public StreamSelectorClient(Context context) {
-        ApplicationProperties applicationProperties = new ApplicationProperties(context.getFilesDir().getAbsolutePath());
-        (new Validator()).validateStreamSelectorProperties(applicationProperties, context);
-        this.streamSelectorUrl = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS);
-        this.apiKey = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY);
-    }
-
-    public SessionSourceStreamOutput postSessionsSessionSourceStreams(Long applicationId, String userLogin, String userPassword, String sessionSdp) throws Exception {
+    public SessionSourceStreamOutput postSessionsSessionSourceStreams(Long applicationId, String userLogin, String userPassword, String sessionSdp, String apiKey) throws Exception {
         SessionSourceStreamInput sessionSourceStreamInput = new SessionSourceStreamInput();
         sessionSourceStreamInput.setApplicationId(applicationId);
         sessionSourceStreamInput.setUserLogin(userLogin);
@@ -45,7 +33,7 @@ public class StreamSelectorClient {
         sessionSourceStreamInput.setSessionSdp(sessionSdp);
         String json = Util.toJson(sessionSourceStreamInput);
         byte[] payload = NetUtil.post(String.format("%s%s", streamSelectorUrl, "/sessions/session-source-streams"), json,
-                Collections.singletonMap("Content-Type", "application/json"), "UTF-8", 0, 0);
+                postHeaders(apiKey), "UTF-8", 0, 0);
 
         return Util.fromJson(new String(payload),
                 SessionSourceStreamOutput.class);
@@ -56,14 +44,17 @@ public class StreamSelectorClient {
         loginInput.setLogin(userName);
         loginInput.setPassword(password);
         loginInput.setApplicationDeviceId(deviceId);
+        loginInput.setApplicationType("COPAEUROPE");
+        loginInput.setApplicationOs("ANDROID");
+        loginInput.setApplicationDeviceName("any");
         String json = Util.toJson(loginInput);
         byte[] payload = NetUtil.post(String.format("%s%s", streamSelectorUrl, "/users/login"), json,
-                postHeaders(apiKey), "UTF-8", 10000, 10000);
+                postHeaders(null), "UTF-8", 10000, 10000);
         return Util.fromJson(new String(payload),
                 LoginOutput.class);
     }
 
-    public SessionDestinationStreamOutput postSessionsSessionDestinationStreams(Long sessionId) throws Exception {
+    public SessionDestinationStreamOutput postSessionsSessionDestinationStreams(Long sessionId, String apiKey) throws Exception {
         SessionDestinationStreamInput sessionDestinationStreamInput = new SessionDestinationStreamInput();
         sessionDestinationStreamInput.setSessionId(sessionId);
         String json = Util.toJson(sessionDestinationStreamInput);
@@ -73,7 +64,7 @@ public class StreamSelectorClient {
                 SessionDestinationStreamOutput.class);
     }
 
-    public GetSessionsOutput getSessions(Integer limit, Integer offset, Integer clusterId, Long sessionId, Long contractId, Long status) throws Exception {
+    public GetSessionsOutput getSessions(Integer limit, Integer offset, Integer clusterId, Long sessionId, Long contractId, Long status, String apiKey) throws Exception {
         StringBuffer queryString = new StringBuffer();
         appendGetParameter(queryString, "limit", String.valueOf(limit));
         appendGetParameter(queryString, "offset", String.valueOf(offset));
@@ -88,7 +79,7 @@ public class StreamSelectorClient {
     }
 
 
-    public void postStopSessionByID(Long sessionId) throws Exception {
+    public void postStopSessionByID(Long sessionId, String apiKey) throws Exception {
         String url = String.format("%s%s/%s/stop", streamSelectorUrl, "/sessions", String.valueOf(sessionId));
         byte[] payload = NetUtil.get(url, getHeaders(apiKey), 10000, 10000);
     }
@@ -105,7 +96,8 @@ public class StreamSelectorClient {
 
     private Map<String, String> postHeaders(String apiKey) {
         Map<String, String> headers = new HashMap<>();
-        headers.put("Authorization", apiKey);
+        if (apiKey != null)
+            headers.put("Authorization", String.format("JWT %s", apiKey));
         headers.put("Content-Type", "application/json");
         headers.put("Accept", "application/json");
         return headers;
@@ -113,7 +105,8 @@ public class StreamSelectorClient {
 
     private Map<String, String> getHeaders(String apiKey) {
         Map<String, String> headers = new HashMap<>();
-        headers.put("Authorization", apiKey);
+        if (apiKey != null)
+            headers.put("Authorization", String.format("JWT %s", apiKey));
         headers.put("Accept", "application/json");
         return headers;
     }

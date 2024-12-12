@@ -4,11 +4,11 @@ import org.kemea.isafeco.client.utils.AppLogger;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class NetUtil {
@@ -18,25 +18,35 @@ public class NetUtil {
         conn.setConnectTimeout(connectTimeout);
         conn.setReadTimeout(readTimeout);
         conn.setDoOutput(true);
-        conn.setInstanceFollowRedirects(false);
+        conn.setInstanceFollowRedirects(true);
         conn.setRequestMethod("POST");
         conn.setUseCaches(false);
         for (Map.Entry<String, String> entry : headers.entrySet()) {
             conn.setRequestProperty(entry.getKey(), entry.getValue());
         }
-
-        byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
-        conn.setRequestProperty("Content-Length", Integer.toString(messageBytes.length));
+        AppLogger.getLogger().i(message);
+        byte[] messageBytes = message.getBytes();
+        conn.setRequestProperty("Content-Length", Integer.toString(message.length()));
 
         try (OutputStream os = conn.getOutputStream()) {
             os.write(messageBytes);
             os.flush();
         }
         byte[] result = null;
-        try (InputStream is = conn.getInputStream()) {
-            result = parseInputStream(is);
+        conn.connect();
+        int responseCode = conn.getResponseCode();
+        AppLogger.getLogger().i(String.valueOf(responseCode));
+
+        try (InputStream inputStream = (responseCode == 200 || responseCode == 204)
+                ? conn.getInputStream()
+                : conn.getErrorStream()) {
+            result = parseInputStream(inputStream);
         }
         conn.disconnect();
+        AppLogger.getLogger().i(new String(result));
+        if (responseCode != 200 && responseCode != 204) {
+            throw new IOException(String.format("Network Error: Http Status %s - %s", responseCode, new String(result)));
+        }
         return result;
     }
 
@@ -50,6 +60,7 @@ public class NetUtil {
             urlConnection.setConnectTimeout(connectTimeout);
             urlConnection.setReadTimeout(readTimeout);
             urlConnection.setRequestMethod("GET");
+            urlConnection.setInstanceFollowRedirects(true);
             // Set headers
             for (Map.Entry<String, String> entry : headers.entrySet()) {
                 urlConnection.setRequestProperty(entry.getKey(), entry.getValue());
@@ -65,10 +76,11 @@ public class NetUtil {
             byte[] response = parseInputStream(inputStream);
 
             if (responseCode != 200 && responseCode != 204) {
-                throw new RuntimeException(String.format("Error calling %s, error: %d, response: %s",
+                throw new IOException(String.format("Error calling %s, error: %d, response: %s",
                         url, responseCode, new String(response)));
             }
-
+            AppLogger.getLogger().i(url);
+            AppLogger.getLogger().i(new String(response));
             return response;
         } finally {
             // Close resources
@@ -110,5 +122,4 @@ public class NetUtil {
                 bis.close();
         }
     }
-
 }

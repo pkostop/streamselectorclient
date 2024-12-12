@@ -17,17 +17,17 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import org.kemea.isafeco.client.R;
-import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorClient;
+import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorService;
 import org.kemea.isafeco.client.streamselector.stubs.output.GetSessionsOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.Session;
 import org.kemea.isafeco.client.utils.AppLogger;
-import org.kemea.isafeco.client.utils.UserLogin;
 import org.kemea.isafeco.client.utils.Util;
 
 public class StreamInputFragment extends Fragment {
 
     private EditText rtpStreamAddressInput;
     ListView listView;
+    StreamSelectorService streamSelectorService;
 
 
     @Nullable
@@ -35,12 +35,12 @@ public class StreamInputFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_select_stream, container, false);
+        streamSelectorService = new StreamSelectorService(requireActivity());
 /*
         rtpStreamAddressInput = view.findViewById(R.id.rtp_stream_receive_address);
         View saveSourceButton = view.findViewById(R.id.save_source_button);
 */
         listView = view.findViewById(R.id.streamsList);
-        (new UserLogin()).logUser(requireContext(), requireActivity());
         getStreamSelectorStreams();
 /*
         saveSourceButton.setOnClickListener(v -> {
@@ -63,14 +63,13 @@ public class StreamInputFragment extends Fragment {
     }
 
     private void getStreamSelectorStreams() {
-        StreamSelectorClient streamSelectorClient = new StreamSelectorClient(requireContext());
         new Thread(new Runnable() {
             GetSessionsOutput getSessionsOutput = null;
 
             @Override
             public void run() {
                 try {
-                    getSessionsOutput = streamSelectorClient.getSessions(50, 0, null, null, null, null);
+                    getSessionsOutput = streamSelectorService.getSessions(50, 0, null, null, null, null);
                 } catch (Exception e) {
                     AppLogger.getLogger().e(Util.stacktrace(e));
                     Util.toast(requireActivity(), String.format("Error: %s", e.getMessage()));
@@ -81,7 +80,7 @@ public class StreamInputFragment extends Fragment {
                             if (listView != null) {
                                 ArrayAdapter<Session> arrayAdapter = createSessionsListViewAdapter(getSessionsOutput);
                                 listView.setAdapter(arrayAdapter);
-                                listView.setOnItemClickListener(new SessionClickListener(streamSelectorClient, requireActivity()));
+                                listView.setOnItemClickListener(new SessionClickListener(requireActivity()));
                             }
                         }
                     });
@@ -106,7 +105,7 @@ public class StreamInputFragment extends Fragment {
 
     @NonNull
     private static String sessionDescription(Session x) {
-        return String.format("(session id) %s, (created at) %s, (status) %s, (cluster id) %s, (contract id) %s", nvl(x.getSessionInfo().getId()), nvl(x.getSessionInfo().getCreatedAt()), nvl(x.getSessionInfo().getStatus()), nvl(x.getClusterInfo().getClusterId()), nvl(x.getClusterInfo().getContractId()));
+        return String.format("(session id) %s, (created at) %s, (status) %s, (cluster id) %s, (contract id) %s", nvl(x.getId()), nvl(x.getCreatedAt()), nvl(x.getStatus()), nvl(x.getClusterId()), nvl(x.getContractId()));
     }
 
     public static String nvl(String val) {
@@ -118,11 +117,9 @@ public class StreamInputFragment extends Fragment {
     }
 
     class SessionClickListener implements AdapterView.OnItemClickListener {
-        StreamSelectorClient streamSelectorClient;
         Activity activity;
 
-        public SessionClickListener(StreamSelectorClient streamSelectorClient, Activity activity) {
-            this.streamSelectorClient = streamSelectorClient;
+        public SessionClickListener(Activity activity) {
             this.activity = activity;
         }
 

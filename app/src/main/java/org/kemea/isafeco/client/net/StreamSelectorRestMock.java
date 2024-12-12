@@ -1,9 +1,7 @@
 package org.kemea.isafeco.client.net;
 
-import org.kemea.isafeco.client.streamselector.stubs.output.ClusterInfo;
 import org.kemea.isafeco.client.streamselector.stubs.output.GetSessionsOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.Session;
-import org.kemea.isafeco.client.streamselector.stubs.output.SessionInfo;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionSourceStreamOutput;
 import org.kemea.isafeco.client.utils.Util;
 
@@ -70,15 +68,13 @@ public class StreamSelectorRestMock extends NanoHTTPD {
         } else if (session.getUri().contains("/sessions")) {
             List<Session> sessionList = new ArrayList<>();
             for (SessionSourceStreamOutput sessionSourceStreamOutput : sessions.values()) {
-                SessionInfo sessionInfo = new SessionInfo();
+                Session sessionInfo = new Session();
                 sessionInfo.setId(sessionSourceStreamOutput.getSessionId());
                 sessionInfo.setSdp(sessionSourceStreamOutput.getSessionSDP());
                 sessionInfo.setCreatedAt(null);
-                ClusterInfo clusterInfo = new ClusterInfo();
-                clusterInfo.setClusterId(1);
-                clusterInfo.setContractId(1);
-                Session sess = new Session(sessionInfo, clusterInfo);
-                sessionList.add(sess);
+                sessionInfo.setClusterId(1);
+                sessionInfo.setContractId(1);
+                sessionList.add(sessionInfo);
             }
             GetSessionsOutput getSessionsOutput = new GetSessionsOutput();
             getSessionsOutput.setSessions(sessionList.toArray(new Session[0]));

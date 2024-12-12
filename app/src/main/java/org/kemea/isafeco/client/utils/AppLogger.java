@@ -24,6 +24,8 @@ public class AppLogger {
     }
 
     public void e(String msg) {
+        if (msg == null)
+            return;
         Log.e(AppLogger.class.getName(), msg);
         logs.add(msg);
     }

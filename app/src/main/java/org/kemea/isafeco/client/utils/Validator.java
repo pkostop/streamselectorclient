@@ -23,11 +23,6 @@ public class Validator {
             Toast.makeText(context, "Empty Stream Selector Password. Go to settings tab", Toast.LENGTH_LONG).show();
             return false;
         }
-
-        if (isEmpty(props.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_API_KEY))) {
-            Toast.makeText(context, "Empty Stream Selector Api Key. Go to settings tab", Toast.LENGTH_LONG).show();
-            return false;
-        }
         return true;
     }
 

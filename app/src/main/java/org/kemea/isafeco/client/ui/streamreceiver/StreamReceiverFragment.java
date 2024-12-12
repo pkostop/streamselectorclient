@@ -29,7 +29,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import org.kemea.isafeco.client.R;
-import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorClient;
+import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorService;
 import org.kemea.isafeco.client.streamselector.stubs.output.Session;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionDestinationStreamOutput;
 import org.kemea.isafeco.client.utils.AppLogger;
@@ -48,7 +48,7 @@ public class StreamReceiverFragment extends Fragment {
     private LibVLC libVLC;
     MediaPlayer mediaPlayer = null;
     private NavController navController;
-
+    private StreamSelectorService streamSelectorService;
     private static final String TAG = "LiveStreamFragment";
 
 
@@ -68,22 +68,26 @@ public class StreamReceiverFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        navController = Navigation.findNavController(view);
-        Session session = (Session) getArguments().get("SESSION");
-
-        if (session == null)
-            Toast.makeText(requireContext(), "Error! StreamSelector Session not found!", Toast.LENGTH_LONG).show();
-        startStreamingSession(session);
+        try {
+            navController = Navigation.findNavController(view);
+            Session session = (Session) getArguments().get("SESSION");
+            if (session == null)
+                Toast.makeText(requireContext(), "Error! StreamSelector Session not found!", Toast.LENGTH_LONG).show();
+            streamSelectorService = new StreamSelectorService(requireContext());
+            startStreamingSession(session);
+        } catch (Exception e) {
+            AppLogger.getLogger().e(e);
+            Toast.makeText(requireContext(), String.format("Error: %s", e.getMessage()), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void startStreamingSession(Session session) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                StreamSelectorClient streamSelectorClient = new StreamSelectorClient(requireContext());
                 SessionDestinationStreamOutput sessionDestinationStreamOutput = null;
                 try {
-                    sessionDestinationStreamOutput = streamSelectorClient.postSessionsSessionDestinationStreams(session.getSessionInfo().getId());
+                    sessionDestinationStreamOutput = streamSelectorService.postSessionsSessionDestinationStreams(session.getId());
                 } catch (Exception e) {
                     AppLogger.getLogger().e(e);
                     Util.toast(requireActivity(), String.format("Error: %s", e.getMessage()));
@@ -175,7 +179,7 @@ public class StreamReceiverFragment extends Fragment {
     private void initVlcPlayer(String url) {
         ArrayList<String> options = new ArrayList<>();
         options.add("--network-caching=300"); // Reduce latency
-        libVLC = new LibVLC(getContext(), options);
+        libVLC = new LibVLC(requireContext(), options);
         mediaPlayer = new MediaPlayer(libVLC);
         IVLCVout ivlcVout = mediaPlayer.getVLCVout();
         ivlcVout.setVideoView(sessionSurfaceView);

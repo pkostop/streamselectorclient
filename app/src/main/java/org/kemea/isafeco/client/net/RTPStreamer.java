@@ -20,26 +20,33 @@ public class RTPStreamer {
     public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA =
             "-loglevel debug -f android_camera -i 0:0 -c:v mpeg2video -b:v 256k -r:v 15 -flush_packets 1 -vf scale=320:240  -f rtp \"%s\"  %s";
     public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
-            "-loglevel debug -f android_camera -i 0:0 -map 0:v -c:v mpeg2video -b:v 256k -r:v 15 -flush_packets 1 -max_delay 0 -video_size 320x240 -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\" ";
+            "-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v mpeg2video -b:v 256k -r:v 12 -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\" ";
+    //"-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libvpx -b:v 500k -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\"";
+    //"-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libvpx -b:v 500k -f rtp rtp://127.0.0.1:9095 %s";
+    //"-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v mpeg2video -b:v 256k -r:v 12 -f rtp rtp://127.0.0.1:9095 %s";
 
+    //"-loglevel debug -f android_camera -i 0:0 -map 0:v -c:v mpeg2video -b:v 1M -r 15 -vf scale=320:240 -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\" %s";
     static final String SDP_FILE_OPTION = "-sdp_file %s";
 
     public RTPStreamer(Context context) {
         this.context = context;
     }
 
-    public void startStreaming(String destinationAddress, String sdpFile, String outputFile) {
+    public void startStreaming(String destinationAddress, String sdpFile) {
         if (destinationAddress == null || "".equalsIgnoreCase(destinationAddress))
             throw new IllegalArgumentException("Destination Address for streaming not found. Go to settings tab to set a destination address.");
+        String sdpOption = null;
         if (sdpFile != null)
-            sdpFile = String.format(SDP_FILE_OPTION, sdpFile);
+            sdpOption = String.format(SDP_FILE_OPTION, sdpFile);
         String ffmpegCommand = String.format(
                 CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW,
                 destinationAddress
         );
         AppLogger.getLogger().e(ffmpegCommand);
+
         ffmpegSession = FFmpegKit.executeAsync(ffmpegCommand, getfFmpegSessionCompleteCallback(sdpFile), getLogCallback(), null);
     }
+
 
     public void stopStreaming() {
         if (ffmpegSession != null && ffmpegSession.getStartTime() != null) {
@@ -54,7 +61,7 @@ public class RTPStreamer {
                 AppLogger.getLogger().e("FFMPEGKit Success!!!");
             } else {
                 AppLogger.getLogger().e("FFMPEGKit Error!!!");
-                //Toast.makeText(context, String.format("RTP Streaming Failed: %s", sessionCompleted.getOutput()), Toast.LENGTH_LONG).show();
+                AppLogger.getLogger().e(sessionCompleted.getOutput());
             }
             try {
                 AppLogger.getLogger().e("--------------SDP FILE---------------------");

@@ -18,7 +18,7 @@ navigationFragment = "2.6.0"
 navigationUi = "2.6.0"
 
 [libraries]
-ffmpeg-kit-full = { module = "com.arthenica:ffmpeg-kit-full", version.ref = "ffmpegKitFull" }
+ffmpeg-kit-full = { module = "com.arthenica:ffmpeg-kit-full-gpl", version.ref = "ffmpegKitFull" }
 firebase-inappmessaging = { module = "com.google.firebase:firebase-inappmessaging", version.ref = "firebaseInappmessaging" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

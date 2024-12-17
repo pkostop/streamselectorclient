@@ -1,10 +1,7 @@
 package org.kemea.isafeco.client.ui.streamreceiver;
 
-import static android.content.ContentValues.TAG;
-
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -76,7 +73,7 @@ public class StreamInputFragment extends Fragment {
                     getSessionsOutput = streamSelectorService.getSessions(50, 0, null, null, null, null);
                 } catch (Exception e) {
                     AppLogger.getLogger().e(Util.stacktrace(e));
-                    Util.toast(requireActivity(), String.format("Error: %s", e.getMessage()));
+                    Util.toast(StreamInputFragment.this.getActivity(), String.format("Error: %s", e.getMessage()));
                 }
                 if (getSessionsOutput != null) {
                     requireActivity().runOnUiThread(new Runnable() {

@@ -42,11 +42,17 @@ public class Util {
     }
 
     public static void toast(Activity activity, String msg) {
-        activity.runOnUiThread(new Runnable() {
-            public void run() {
-                Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
-            }
-        });
+        if (activity == null)
+            return;
+        try {
+            activity.runOnUiThread(new Runnable() {
+                public void run() {
+                    Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
+                }
+            });
+        } catch (Exception e) {
+            AppLogger.getLogger().e(e);
+        }
     }
 
 }

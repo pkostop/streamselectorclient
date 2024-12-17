@@ -66,7 +66,7 @@ public class CameraRecordingService extends Service {
         }
         streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS);
         if (!Util.isEmpty(streamingAddress)) {
-            rtpStreamer.startStreaming(streamingAddress, sdpFilePath);
+            rtpStreamer.startStreaming(streamingAddress, sdpFilePath, 100L);
         }
     }
 
@@ -78,9 +78,9 @@ public class CameraRecordingService extends Service {
             public void run() {
                 try {
                     SessionSourceStreamOutput sessionSourceStreamOutput = streamSelectorService.postSessionsSessionSourceStreams(1L, "");
-                    String streamingAddress = String.format("%s://%s:%s", sessionSourceStreamOutput.getSessionSourceServiceProtocol(), sessionSourceStreamOutput.getSessionSourceServiceIp(), sessionSourceStreamOutput.getSessionSourceServicePort());
+                    String streamingAddress = String.format("%s://%s:%s?pkt_size=1316", sessionSourceStreamOutput.getSessionSourceServiceProtocol(), sessionSourceStreamOutput.getSessionSourceServiceIp(), sessionSourceStreamOutput.getSessionSourceServicePort());
                     showToast(String.format("Streaming to %s", streamingAddress));
-                    rtpStreamer.startStreaming(streamingAddress, sdpFilePath);
+                    rtpStreamer.startStreaming(streamingAddress, sdpFilePath, sessionSourceStreamOutput.getSessionId());
                 } catch (Exception e) {
                     AppLogger.getLogger().e(e);
                 }

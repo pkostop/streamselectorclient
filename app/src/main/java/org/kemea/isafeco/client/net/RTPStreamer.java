@@ -20,7 +20,7 @@ public class RTPStreamer {
     public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA =
             "-loglevel debug -f android_camera -i 0:0 -c:v mpeg2video -b:v 256k -r:v 15 -flush_packets 1 -vf scale=320:240  -f rtp \"%s\"  %s";
     public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
-            "-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v mpeg2video -b:v 256k -r:v 12 -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\" ";
+            "-loglevel debug -f android_camera -re -i 0:0 -s 176x144 -map 0:v -c:v mpeg2video -an -ssrc %s -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\" ";
     //"-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libvpx -b:v 500k -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\"";
     //"-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libvpx -b:v 500k -f rtp rtp://127.0.0.1:9095 %s";
     //"-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v mpeg2video -b:v 256k -r:v 12 -f rtp rtp://127.0.0.1:9095 %s";
@@ -32,7 +32,7 @@ public class RTPStreamer {
         this.context = context;
     }
 
-    public void startStreaming(String destinationAddress, String sdpFile) {
+    public void startStreaming(String destinationAddress, String sdpFile, Long sessionId) {
         if (destinationAddress == null || "".equalsIgnoreCase(destinationAddress))
             throw new IllegalArgumentException("Destination Address for streaming not found. Go to settings tab to set a destination address.");
         String sdpOption = null;
@@ -40,6 +40,7 @@ public class RTPStreamer {
             sdpOption = String.format(SDP_FILE_OPTION, sdpFile);
         String ffmpegCommand = String.format(
                 CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW,
+                sessionId,
                 destinationAddress
         );
         AppLogger.getLogger().e(ffmpegCommand);

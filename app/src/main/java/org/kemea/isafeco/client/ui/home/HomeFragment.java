@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 
 import org.kemea.isafeco.client.CameraRecordingService;
 import org.kemea.isafeco.client.databinding.FragmentHomeBinding;
+import org.kemea.isafeco.client.net.RTPStreamer;
 import org.kemea.isafeco.client.utils.AppLogger;
 import org.kemea.isafeco.client.utils.ApplicationProperties;
 import org.kemea.isafeco.client.utils.Validator;
@@ -34,15 +35,14 @@ import java.util.Arrays;
 
 public class HomeFragment extends Fragment {
 
-    public static final String PREVIEW_RTP_ADDRESS = "rtp://127.0.0.1:9095";
     public static final String SDP = "\n" +
             "o=- 0 0 IN IP4 127.0.0.1\n" +
             "s=No Name\n" +
             "c=IN IP4 127.0.0.1\n" +
             "t=0 0\n" +
-            "a=tool:libavformat LIBAVFORMAT_VERSION\n" +
-            "m=video 9095 RTP/AVP 32\n" +
-            "b=AS:500\n";
+            //"a=tool:libavformat LIBAVFORMAT_VERSION\n" +
+            "m=video 9095 RTP/AVP 32\n";
+    //"b=AS:500\n";
     private FragmentHomeBinding binding;
     MediaPlayer mediaPlayer = null;
     LibVLC libVLC = null;
@@ -94,9 +94,9 @@ public class HomeFragment extends Fragment {
                 if (!(new Validator()).validateStreamSelectorProperties(applicationProperties, requireContext()))
                     return;
                 if (rec) {
+                    startPreview();
                     intent = new Intent(HomeFragment.this.getActivity(), CameraRecordingService.class);
                     requireContext().startForegroundService(intent);
-                    startPreview();
                 } else {
                     requireContext().stopService(intent);
                     stopPreview();
@@ -116,41 +116,36 @@ public class HomeFragment extends Fragment {
                 libVLC.release();
             }
         }
+    }
 
-        private void startPreview() throws InterruptedException {
-            ArrayList<String> options = new ArrayList<>();
-            options.add(":network-caching=3000"); // Reduce latency
-            options.add("--verbose=2");
-            options.add("--no-audio");
-            libVLC = new LibVLC(requireContext(), options);
-            mediaPlayer = new MediaPlayer(libVLC);
-            IVLCVout ivlcVout = mediaPlayer.getVLCVout();
-            ivlcVout.setVideoView(binding.surfaceView);
-            ivlcVout.attachViews();
-            ivlcVout.setWindowSize(binding.surfaceView.getWidth(), binding.surfaceView.getHeight());
-            Media media = new Media(libVLC, Uri.parse(PREVIEW_RTP_ADDRESS));
-            //File sdpFile = writeSDPToTempFile(SDP, requireContext());
-            //Media media = new Media(libVLC, Uri.fromFile(sdpFile));
-            mediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
-            mediaPlayer.setMedia(media);
-            media.release();
-            mediaPlayer.play();
-            mediaPlayer.setEventListener(new MediaPlayer.EventListener() {
-                @Override
-                public void onEvent(MediaPlayer.Event event) {
-                    if (event == null)
-                        return;
+    public void startPreview() throws InterruptedException {
+        ArrayList<String> options = new ArrayList<>();
+        options.add(":network-caching=300");
+        options.add("--verbose=2");
+        options.add("--no-audio");
+        libVLC = new LibVLC(requireContext(), options);
+        mediaPlayer = new MediaPlayer(libVLC);
+        IVLCVout ivlcVout = mediaPlayer.getVLCVout();
+        ivlcVout.setVideoView(binding.surfaceView);
+        ivlcVout.attachViews();
+        ivlcVout.setWindowSize(binding.surfaceView.getWidth(), binding.surfaceView.getHeight());
+        Media media = new Media(libVLC, Uri.parse(RTPStreamer.PREVIEW_MPEGTS_ADDRESS));
+        mediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
+        mediaPlayer.setMedia(media);
+        media.release();
+        mediaPlayer.play();
+        mediaPlayer.setEventListener(new MediaPlayer.EventListener() {
+            @Override
+            public void onEvent(MediaPlayer.Event event) {
+                if (event == null)
+                    return;
 
-                    if (event.type == MediaPlayer.Event.EncounteredError) {
-                        AppLogger.getLogger().e("Libvlc Error occurred in media player");
-                        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                            mediaPlayer.stop();
-                        }
-                    }
-
+                if (event.type == MediaPlayer.Event.EncounteredError) {
+                    AppLogger.getLogger().e("Libvlc Error occurred in media player");
                 }
-            });
-        }
+
+            }
+        });
     }
 
     public void printCameraCapabilities() {

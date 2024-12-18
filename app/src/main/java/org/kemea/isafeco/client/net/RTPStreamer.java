@@ -15,17 +15,14 @@ import com.arthenica.ffmpegkit.ReturnCode;
 import org.kemea.isafeco.client.utils.AppLogger;
 
 public class RTPStreamer {
+    public static final String PREVIEW_MPEGTS_ADDRESS = "udp://@127.0.0.1:9095";
     FFmpegSession ffmpegSession;
+    FFmpegSession rtpToHlsSession = null;
     Context context;
-    public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA =
-            "-loglevel debug -f android_camera -i 0:0 -c:v mpeg2video -b:v 256k -r:v 15 -flush_packets 1 -vf scale=320:240  -f rtp \"%s\"  %s";
-    public static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
-            "-loglevel debug -f android_camera -re -i 0:0 -s 176x144 -map 0:v -c:v mpeg2video -an -ssrc %s -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\" ";
-    //"-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libvpx -b:v 500k -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\"";
-    //"-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libvpx -b:v 500k -f rtp rtp://127.0.0.1:9095 %s";
-    //"-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v mpeg2video -b:v 256k -r:v 12 -f rtp rtp://127.0.0.1:9095 %s";
+    private static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
+            "-loglevel debug -f android_camera -re -i 0:0 -s 176x144 -map 0:v -c:v libx264 -an -ssrc %s -f tee \"[f=rtp]%s|[f=mpegts]%s\" ";
 
-    //"-loglevel debug -f android_camera -i 0:0 -map 0:v -c:v mpeg2video -b:v 1M -r 15 -vf scale=320:240 -f tee \"[f=rtp]%s|[f=rtp]rtp://127.0.0.1:9095\" %s";
+
     static final String SDP_FILE_OPTION = "-sdp_file %s";
 
     public RTPStreamer(Context context) {
@@ -41,15 +38,17 @@ public class RTPStreamer {
         String ffmpegCommand = String.format(
                 CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW,
                 sessionId,
-                destinationAddress
+                destinationAddress,
+                PREVIEW_MPEGTS_ADDRESS
         );
         AppLogger.getLogger().e(ffmpegCommand);
-
         ffmpegSession = FFmpegKit.executeAsync(ffmpegCommand, getfFmpegSessionCompleteCallback(sdpFile), getLogCallback(), null);
     }
 
-
     public void stopStreaming() {
+        if (rtpToHlsSession != null && rtpToHlsSession.getStartTime() != null) {
+            FFmpegKit.cancel(rtpToHlsSession.getSessionId());
+        }
         if (ffmpegSession != null && ffmpegSession.getStartTime() != null) {
             FFmpegKit.cancel(ffmpegSession.getSessionId());
         }
@@ -83,5 +82,13 @@ public class RTPStreamer {
                 AppLogger.getLogger().e(log.getMessage());
             }
         };
+    }
+
+    public static FFmpegSession runFfmpegCommand(String ffmpegCommand) {
+        FFmpegSessionCompleteCallback fFmpegSessionCompleteCallback = session -> {
+            AppLogger.getLogger().i(session.getOutput());
+        };
+        LogCallback logCallback = log -> AppLogger.getLogger().i(String.format("%s, %s", log.getSessionId(), log.getMessage()));
+        return FFmpegKit.executeAsync(ffmpegCommand, fFmpegSessionCompleteCallback, logCallback, null);
     }
 }

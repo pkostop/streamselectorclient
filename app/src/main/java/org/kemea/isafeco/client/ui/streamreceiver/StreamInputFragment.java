@@ -70,7 +70,7 @@ public class StreamInputFragment extends Fragment {
             @Override
             public void run() {
                 try {
-                    getSessionsOutput = streamSelectorService.getSessions(100, 0, null, null, null, 2L);
+                    getSessionsOutput = streamSelectorService.getSessions(100, 0, null, null, null, "active");
                 } catch (Exception e) {
                     AppLogger.getLogger().e(Util.stacktrace(e));
                     Util.toast(StreamInputFragment.this.getActivity(), String.format("Error: %s", e.getMessage()));

@@ -14,7 +14,6 @@ import org.kemea.isafeco.client.streamselector.stubs.output.SessionDestinationSt
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionSourceStreamOutput;
 import org.kemea.isafeco.client.utils.Util;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,14 +68,14 @@ public class StreamSelectorClient {
                 SessionDestinationStreamOutput.class);
     }
 
-    public GetSessionsOutput getSessions(Integer limit, Integer offset, Integer clusterId, Long sessionId, Long contractId, Long status, String apiKey) throws Exception {
+    public GetSessionsOutput getSessions(Integer limit, Integer offset, Integer clusterId, Long sessionId, Long contractId, String status, String apiKey) throws Exception {
         StringBuffer queryString = new StringBuffer();
         appendGetParameter(queryString, "limit", String.valueOf(limit));
         appendGetParameter(queryString, "offset", String.valueOf(offset));
         appendGetParameter(queryString, "cluster_id", String.valueOf(clusterId));
         appendGetParameter(queryString, "session_id", String.valueOf(sessionId));
         appendGetParameter(queryString, "contract_id", String.valueOf(contractId));
-        appendGetParameter(queryString, "status", String.valueOf(status));
+        appendGetParameter(queryString, "status", status);
         String url = String.format("%s%s%s", streamSelectorUrl, "/api/v2.0.0.0/sessions", queryString.toString());
         byte[] payload = NetUtil.get(url, getHeaders(apiKey), CONNECT_TIMEOUT, READ_TIMEOUT);
         return Util.fromJson(new String(payload),

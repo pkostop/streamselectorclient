@@ -44,7 +44,7 @@ public class StreamSelectorService {
         return streamSelectorClient.postSessionsSessionDestinationStreams(sessionId, loginOutput.getToken());
     }
 
-    public GetSessionsOutput getSessions(Integer limit, Integer offset, Integer clusterId, Long sessionId, Long contractId, Long status) throws Exception {
+    public GetSessionsOutput getSessions(Integer limit, Integer offset, Integer clusterId, Long sessionId, Long contractId, String status) throws Exception {
         initStreamSelectorResources();
         return streamSelectorClient.getSessions(limit, offset, clusterId, sessionId, contractId, status, loginOutput.getToken());
     }

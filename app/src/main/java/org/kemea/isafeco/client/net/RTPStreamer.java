@@ -20,7 +20,7 @@ public class RTPStreamer {
     FFmpegSession rtpToHlsSession = null;
     Context context;
     private static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
-            "-loglevel debug -f android_camera -re -i 0:0 -s 176x144 -map 0:v -c:v libx264 -an -ssrc %s -f tee \"[f=rtp]%s|[f=mpegts]%s\" ";
+            "-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libx264 -an -ssrc %s -f rtp %s";
 
 
     static final String SDP_FILE_OPTION = "-sdp_file %s";
@@ -38,8 +38,7 @@ public class RTPStreamer {
         String ffmpegCommand = String.format(
                 CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW,
                 sessionId,
-                destinationAddress,
-                PREVIEW_MPEGTS_ADDRESS
+                destinationAddress
         );
         AppLogger.getLogger().e(ffmpegCommand);
         ffmpegSession = FFmpegKit.executeAsync(ffmpegCommand, getfFmpegSessionCompleteCallback(sdpFile), getLogCallback(), null);

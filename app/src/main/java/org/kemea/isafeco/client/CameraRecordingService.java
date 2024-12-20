@@ -70,6 +70,15 @@ public class CameraRecordingService extends Service {
         }
     }
 
+    public static final String SDP = "\n" +
+            "o=- 0 0 IN IP4 127.0.0.1\n" +
+            "s=No Name\n" +
+            "c=IN IP4 127.0.0.1\n" +
+            "t=0 0\n" +
+            "a=tool:libavformat LIBAVFORMAT_VERSION\n" +
+            "m=video 9095 RTP/AVP 96\n" +
+            "a=rtpmap:96 H264/90000\n";
+
     private void trasmitToStreamSelector() throws Exception {
         if (streamSelectorService == null || rtpStreamer == null)
             return;
@@ -77,7 +86,7 @@ public class CameraRecordingService extends Service {
             @Override
             public void run() {
                 try {
-                    SessionSourceStreamOutput sessionSourceStreamOutput = streamSelectorService.postSessionsSessionSourceStreams(1L, "");
+                    SessionSourceStreamOutput sessionSourceStreamOutput = streamSelectorService.postSessionsSessionSourceStreams(1L, SDP);
                     String streamingAddress = String.format("%s://%s:%s?pkt_size=1316", sessionSourceStreamOutput.getSessionSourceServiceProtocol(), sessionSourceStreamOutput.getSessionSourceServiceIp(), sessionSourceStreamOutput.getSessionSourceServicePort());
                     showToast(String.format("Streaming to %s", streamingAddress));
                     rtpStreamer.startStreaming(streamingAddress, sdpFilePath, sessionSourceStreamOutput.getSessionId());

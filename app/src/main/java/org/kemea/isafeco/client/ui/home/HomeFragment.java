@@ -35,14 +35,7 @@ import java.util.Arrays;
 
 public class HomeFragment extends Fragment {
 
-    public static final String SDP = "\n" +
-            "o=- 0 0 IN IP4 127.0.0.1\n" +
-            "s=No Name\n" +
-            "c=IN IP4 127.0.0.1\n" +
-            "t=0 0\n" +
-            //"a=tool:libavformat LIBAVFORMAT_VERSION\n" +
-            "m=video 9095 RTP/AVP 32\n";
-    //"b=AS:500\n";
+
     private FragmentHomeBinding binding;
     MediaPlayer mediaPlayer = null;
     LibVLC libVLC = null;
@@ -94,12 +87,12 @@ public class HomeFragment extends Fragment {
                 if (!(new Validator()).validateStreamSelectorProperties(applicationProperties, requireContext()))
                     return;
                 if (rec) {
-                    startPreview();
+                    //startPreview();
                     intent = new Intent(HomeFragment.this.getActivity(), CameraRecordingService.class);
                     requireContext().startForegroundService(intent);
                 } else {
                     requireContext().stopService(intent);
-                    stopPreview();
+                    //stopPreview();
                 }
             } catch (Exception e) {
                 AppLogger.getLogger().e(e);

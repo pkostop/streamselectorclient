@@ -7,9 +7,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -33,6 +31,7 @@ public class CameraRecordingService extends Service {
     ApplicationProperties applicationProperties = null;
     String sdpFilePath = null;
     static final String CHANNEL_ID = "100";
+    private Long sessionId;
 
     @Nullable
     @Override
@@ -87,8 +86,9 @@ public class CameraRecordingService extends Service {
             public void run() {
                 try {
                     SessionSourceStreamOutput sessionSourceStreamOutput = streamSelectorService.postSessionsSessionSourceStreams(1L, SDP);
+                    sessionId = sessionSourceStreamOutput.getSessionId();
                     String streamingAddress = String.format("%s://%s:%s?pkt_size=1316", sessionSourceStreamOutput.getSessionSourceServiceProtocol(), sessionSourceStreamOutput.getSessionSourceServiceIp(), sessionSourceStreamOutput.getSessionSourceServicePort());
-                    showToast(String.format("Streaming to %s", streamingAddress));
+                    AppLogger.getLogger().e(String.format("Streaming to %s", streamingAddress));
                     rtpStreamer.startStreaming(streamingAddress, sdpFilePath, sessionSourceStreamOutput.getSessionId());
                 } catch (Exception e) {
                     AppLogger.getLogger().e(e);
@@ -96,20 +96,6 @@ public class CameraRecordingService extends Service {
             }
         }).start();
 
-    }
-
-    void showToast(String msg) {
-        if (getApplicationContext() != null) {
-            Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-                }
-
-            });
-
-        }
     }
 
     protected NotificationChannel getNotificationChannel() {
@@ -139,6 +125,13 @@ public class CameraRecordingService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (sessionId != null) {
+            try {
+                streamSelectorService.sessionClose(sessionId);
+            } catch (Exception e) {
+                AppLogger.getLogger().e(e.getMessage());
+            }
+        }
         if (rtpStreamer != null) {
             rtpStreamer.stopStreaming();
         }

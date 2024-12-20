@@ -1,6 +1,5 @@
 package org.kemea.isafeco.client.ui.home;
 
-import android.content.Context;
 import android.content.Intent;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -26,10 +25,6 @@ import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.interfaces.IVLCVout;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -59,26 +54,6 @@ public class HomeFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
-    private File writeSDPToTempFile(String sdpContent, Context context) {
-        try {
-            // Get the cache directory (temporary storage directory for the app)
-            File tempFile = File.createTempFile("stream", ".sdp", context.getCacheDir());
-
-            // Write the SDP content to the file
-            try (FileOutputStream fos = new FileOutputStream(tempFile);
-                 OutputStreamWriter writer = new OutputStreamWriter(fos)) {
-                writer.write(sdpContent);
-                writer.flush();
-            }
-
-            return tempFile;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
 
     class CameraButtonChangeListener implements CompoundButton.OnCheckedChangeListener {
         @Override

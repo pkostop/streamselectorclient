@@ -28,12 +28,15 @@ import androidx.media3.ui.PlayerView;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
+import com.arthenica.ffmpegkit.FFmpegKit;
+import com.arthenica.ffmpegkit.FFmpegSession;
+
 import org.kemea.isafeco.client.R;
+import org.kemea.isafeco.client.net.RTPStreamer;
 import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorService;
 import org.kemea.isafeco.client.streamselector.stubs.output.Session;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionDestinationStreamOutput;
 import org.kemea.isafeco.client.utils.AppLogger;
-import org.kemea.isafeco.client.utils.Util;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
@@ -50,6 +53,7 @@ public class StreamReceiverFragment extends Fragment {
     private NavController navController;
     private StreamSelectorService streamSelectorService;
     private static final String TAG = "LiveStreamFragment";
+    private FFmpegSession ffmpegSession = null;
 
 
     @SuppressLint("MissingInflatedId")
@@ -90,11 +94,11 @@ public class StreamReceiverFragment extends Fragment {
                     sessionDestinationStreamOutput = streamSelectorService.postSessionsSessionDestinationStreams(session.getId());
                 } catch (Exception e) {
                     AppLogger.getLogger().e(e);
-                    Util.toast(requireActivity(), String.format("Error: %s", e.getMessage()));
                 }
                 if (sessionDestinationStreamOutput == null) return;
-                String rtpUrl = String.format("%s://%s:%s", sessionDestinationStreamOutput.getSessionDestinationServiceProtocol(), sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort());
-                Util.toast(requireActivity(), String.format("Streaming: %s", rtpUrl));
+                RTPStreamer rtpStreamer = new RTPStreamer(requireContext());
+                ffmpegSession = rtpStreamer.receiveStream(sessionDestinationStreamOutput.getSessionDestinationServiceProtocol(), sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort());
+                String rtpUrl = String.format("%s://%s:%s", "udp://127.0.0.1:9011");
                 requireActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -216,6 +220,8 @@ public class StreamReceiverFragment extends Fragment {
             exoPlayer.release();
             exoPlayer = null;
         }
+        if (ffmpegSession != null)
+            FFmpegKit.cancel(ffmpegSession.getSessionId());
     }
 
     public void handleOnBackPressed() {

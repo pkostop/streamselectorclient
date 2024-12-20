@@ -1,12 +1,17 @@
 package org.kemea.isafeco.client.utils;
 
 import android.app.Activity;
+import android.content.Context;
 import android.widget.Toast;
 
 import com.google.gson.GsonBuilder;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 
 public class Util {
@@ -52,6 +57,25 @@ public class Util {
             });
         } catch (Exception e) {
             AppLogger.getLogger().e(e);
+        }
+    }
+
+    public static File writeSDPToTempFile(String sdpContent, Context context) {
+        try {
+            // Get the cache directory (temporary storage directory for the app)
+            File tempFile = File.createTempFile("stream", ".sdp", context.getCacheDir());
+
+            // Write the SDP content to the file
+            try (FileOutputStream fos = new FileOutputStream(tempFile);
+                 OutputStreamWriter writer = new OutputStreamWriter(fos)) {
+                writer.write(sdpContent);
+                writer.flush();
+            }
+
+            return tempFile;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

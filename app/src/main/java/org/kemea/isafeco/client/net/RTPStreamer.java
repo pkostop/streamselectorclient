@@ -83,6 +83,12 @@ public class RTPStreamer {
         };
     }
 
+    public FFmpegSession receiveStream(String protocol, String host, int port) {
+        String originAddress = String.format("%s://%s:%s", protocol, host, port);
+        String FFMPEG_CMD_RECEIVE_STREAM = "ffmpeg -i %s -c:v copy -f rtp_mpegts -rtcpport %s -flags +send_rtcp udp://127.0.0.1:9011\n";
+        return runFfmpegCommand(String.format(FFMPEG_CMD_RECEIVE_STREAM, originAddress, port));
+    }
+
     public static FFmpegSession runFfmpegCommand(String ffmpegCommand) {
         FFmpegSessionCompleteCallback fFmpegSessionCompleteCallback = session -> {
             AppLogger.getLogger().i(session.getOutput());

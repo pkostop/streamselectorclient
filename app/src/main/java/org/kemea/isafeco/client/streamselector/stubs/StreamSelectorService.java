@@ -39,6 +39,11 @@ public class StreamSelectorService {
         return streamSelectorClient.postSessionsSessionSourceStreams(applicationId, getUserName(), getUserPassword(), sessionSdp, loginOutput.getToken());
     }
 
+    public void sessionClose(Long sessionId) throws Exception {
+        initStreamSelectorResources();
+        streamSelectorClient.postStopSessionByID(sessionId, loginOutput.getToken());
+    }
+
     public SessionDestinationStreamOutput postSessionsSessionDestinationStreams(Long sessionId) throws Exception {
         initStreamSelectorResources();
         return streamSelectorClient.postSessionsSessionDestinationStreams(sessionId, loginOutput.getToken());

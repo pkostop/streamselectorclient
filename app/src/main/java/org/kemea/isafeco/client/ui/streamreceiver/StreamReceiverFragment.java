@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +28,7 @@ import androidx.media3.exoplayer.trackselection.TrackSelector;
 import androidx.media3.ui.PlayerView;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.arthenica.ffmpegkit.FFmpegKit;
 import com.arthenica.ffmpegkit.FFmpegSession;
@@ -53,20 +55,33 @@ public class StreamReceiverFragment extends Fragment {
     private NavController navController;
     private StreamSelectorService streamSelectorService;
     private static final String TAG = "LiveStreamFragment";
-    private FFmpegSession ffmpegSession = null;
+    private FFmpegSession keepAliveFFmpegSession = null;
+    private FFmpegSession convert2MpegtsFFmpegSession = null;
 
 
     @SuppressLint("MissingInflatedId")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Inflate the layout containing the PlayerView
         Log.d(TAG, ">>> Player onCreateView()");
-
         View view = inflater.inflate(R.layout.fragment_video_player, container, false);
+        Button button = view.findViewById(R.id.stop_button);
+        button.setOnClickListener(v -> {
+            stopPlayback();
+            NavHostFragment.findNavController(this)
+                    .navigate(R.id.action_liveStreamFragment_to_streamInputFragment, new Bundle());
+        });
         //playerView = view.findViewById(R.id.player_view);
         sessionSurfaceView = view.findViewById(R.id.sessionSurfaceView);
         return view;
+    }
+
+    private void stopPlayback() {
+        stopVlcPlayer();
+        if (keepAliveFFmpegSession != null)
+            FFmpegKit.cancel(keepAliveFFmpegSession.getSessionId());
+        if (convert2MpegtsFFmpegSession != null)
+            FFmpegKit.cancel(convert2MpegtsFFmpegSession.getSessionId());
     }
 
     @Override
@@ -77,7 +92,6 @@ public class StreamReceiverFragment extends Fragment {
             Session session = (Session) getArguments().get("SESSION");
             if (session == null)
                 Toast.makeText(requireContext(), "Error! StreamSelector Session not found!", Toast.LENGTH_LONG).show();
-            streamSelectorService = new StreamSelectorService(requireContext());
             startStreamingSession(session);
         } catch (Exception e) {
             AppLogger.getLogger().e(e);
@@ -86,6 +100,7 @@ public class StreamReceiverFragment extends Fragment {
     }
 
     private void startStreamingSession(Session session) {
+        streamSelectorService = new StreamSelectorService(requireContext());
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -97,13 +112,13 @@ public class StreamReceiverFragment extends Fragment {
                 }
                 if (sessionDestinationStreamOutput == null) return;
                 RTPStreamer rtpStreamer = new RTPStreamer(requireContext());
-                ffmpegSession = rtpStreamer.receiveStream(sessionDestinationStreamOutput.getSessionDestinationServiceProtocol(), sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort());
-                String rtpUrl = String.format("%s://%s:%s", "udp://127.0.0.1:9011");
+                keepAliveFFmpegSession = rtpStreamer.keepAliveStream(sessionDestinationStreamOutput.getSessionDestinationServiceProtocol(), sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort());
+                convert2MpegtsFFmpegSession = rtpStreamer.convertStreamToMpegts(sessionDestinationStreamOutput.getSessionDestinationServiceProtocol(), sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort());
                 requireActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         //initializeExoPlayer(rtpUrl);
-                        initVlcPlayer(rtpUrl);
+                        initVlcPlayer(RTPStreamer.LOCAL_STREAMING_ADDRESS_VLC);
                     }
                 });
             }
@@ -182,17 +197,27 @@ public class StreamReceiverFragment extends Fragment {
 
     private void initVlcPlayer(String url) {
         ArrayList<String> options = new ArrayList<>();
-        options.add("--network-caching=300"); // Reduce latency
+        options.add("--network-caching=300");
+        options.add("--verbose=2");
         libVLC = new LibVLC(requireContext(), options);
         mediaPlayer = new MediaPlayer(libVLC);
         IVLCVout ivlcVout = mediaPlayer.getVLCVout();
         ivlcVout.setVideoView(sessionSurfaceView);
         ivlcVout.attachViews();
-        ivlcVout.setWindowSize(900, 1600);
-        Media media = new Media(libVLC, Uri.parse(url));
+        ivlcVout.setWindowSize(sessionSurfaceView.getWidth(), sessionSurfaceView.getHeight());
+        Media media = new Media(libVLC, Uri.parse(RTPStreamer.LOCAL_STREAMING_ADDRESS_VLC));
+        mediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
         mediaPlayer.setMedia(media);
-        mediaPlayer.setAspectRatio("9:16");
         media.release();
+        mediaPlayer.setEventListener(event -> {
+            if (event == null)
+                return;
+
+            if (event.type == MediaPlayer.Event.EncounteredError) {
+                AppLogger.getLogger().e("Libvlc Error occurred in media player");
+            }
+
+        });
         mediaPlayer.play();
     }
 
@@ -215,13 +240,27 @@ public class StreamReceiverFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        stopVlcPlayer();
+        if (keepAliveFFmpegSession != null)
+            FFmpegKit.cancel(keepAliveFFmpegSession.getSessionId());
+    }
+
+    private void stopExoPlayer() {
         if (exoPlayer != null) {
             exoPlayer.clearVideoSurface();
             exoPlayer.release();
             exoPlayer = null;
         }
-        if (ffmpegSession != null)
-            FFmpegKit.cancel(ffmpegSession.getSessionId());
+    }
+
+    private void stopVlcPlayer() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+        }
+        if (libVLC != null) {
+            libVLC.release();
+        }
     }
 
     public void handleOnBackPressed() {

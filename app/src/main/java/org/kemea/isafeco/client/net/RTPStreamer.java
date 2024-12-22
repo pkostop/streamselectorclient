@@ -15,12 +15,14 @@ import com.arthenica.ffmpegkit.ReturnCode;
 import org.kemea.isafeco.client.utils.AppLogger;
 
 public class RTPStreamer {
-    public static final String PREVIEW_MPEGTS_ADDRESS = "udp://@127.0.0.1:9095";
+    public static final String LOCAL_STREAMING_ADDRESS = "udp://127.0.0.1:9090";
+    public static final String LOCAL_STREAMING_ADDRESS_VLC = "udp://@127.0.0.1:9090";
     FFmpegSession ffmpegSession;
-    FFmpegSession rtpToHlsSession = null;
     Context context;
     private static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
-            "-loglevel debug -f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libx264 -an -ssrc %s -f rtp %s";
+            "-f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libx264 -an -ssrc %s -f rtp %s";
+    private static String FFMPEG_CMD_KEEP_ALIVE_RECEIVE_STREAM = "-re -f lavfi -i color=c=black:s=16x16:r=1 -vf \"fps=1\" -c:v rawvideo -pix_fmt yuv420p -f rtp -sdp_file stream.sdp %s";
+    private static String FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS = "-loglevel debug -i %s -c:v copy -f mpegts %s";
 
 
     static final String SDP_FILE_OPTION = "-sdp_file %s";
@@ -45,9 +47,6 @@ public class RTPStreamer {
     }
 
     public void stopStreaming() {
-        if (rtpToHlsSession != null && rtpToHlsSession.getStartTime() != null) {
-            FFmpegKit.cancel(rtpToHlsSession.getSessionId());
-        }
         if (ffmpegSession != null && ffmpegSession.getStartTime() != null) {
             FFmpegKit.cancel(ffmpegSession.getSessionId());
         }
@@ -83,10 +82,14 @@ public class RTPStreamer {
         };
     }
 
-    public FFmpegSession receiveStream(String protocol, String host, int port) {
+    public FFmpegSession keepAliveStream(String protocol, String host, int port) {
         String originAddress = String.format("%s://%s:%s", protocol, host, port);
-        String FFMPEG_CMD_RECEIVE_STREAM = "ffmpeg -i %s -c:v copy -f rtp_mpegts -rtcpport %s -flags +send_rtcp udp://127.0.0.1:9011\n";
-        return runFfmpegCommand(String.format(FFMPEG_CMD_RECEIVE_STREAM, originAddress, port));
+        return runFfmpegCommand(String.format(FFMPEG_CMD_KEEP_ALIVE_RECEIVE_STREAM, originAddress));
+    }
+
+    public FFmpegSession convertStreamToMpegts(String protocol, String host, int port) {
+        String originAddress = String.format("%s://%s:%s", protocol, host, port);
+        return runFfmpegCommand(String.format(FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS, originAddress, LOCAL_STREAMING_ADDRESS));
     }
 
     public static FFmpegSession runFfmpegCommand(String ffmpegCommand) {

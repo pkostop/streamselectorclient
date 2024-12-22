@@ -39,6 +39,7 @@ public class CameraRecordingService extends Service {
         return null;
     }
 
+
     @Override
     public void onCreate() {
         applicationProperties = new ApplicationProperties(this.getFilesDir().getAbsolutePath());
@@ -126,11 +127,13 @@ public class CameraRecordingService extends Service {
     public void onDestroy() {
         super.onDestroy();
         if (sessionId != null) {
-            try {
-                streamSelectorService.sessionClose(sessionId);
-            } catch (Exception e) {
-                AppLogger.getLogger().e(e.getMessage());
-            }
+            new Thread(() -> {
+                try {
+                    streamSelectorService.sessionClose(sessionId);
+                } catch (Exception e) {
+                    AppLogger.getLogger().e(e.getMessage());
+                }
+            });
         }
         if (rtpStreamer != null) {
             rtpStreamer.stopStreaming();

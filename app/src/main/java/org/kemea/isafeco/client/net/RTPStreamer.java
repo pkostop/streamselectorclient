@@ -82,9 +82,8 @@ public class RTPStreamer {
         };
     }
 
-    public FFmpegSession keepAliveStream(String protocol, String host, int port) {
-        String originAddress = String.format("%s://%s:%s", protocol, host, port);
-        return runFfmpegCommand(String.format(FFMPEG_CMD_KEEP_ALIVE_RECEIVE_STREAM, originAddress));
+    public FFmpegSession keepAliveStream(String host, int port, int ssrc) {
+        RTCPClient.sendRTCPRR(host, port, ssrc);
     }
 
     public FFmpegSession convertStreamToMpegts(String protocol, String host, int port) {

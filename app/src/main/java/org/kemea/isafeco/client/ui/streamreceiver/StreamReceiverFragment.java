@@ -112,7 +112,7 @@ public class StreamReceiverFragment extends Fragment {
                 }
                 if (sessionDestinationStreamOutput == null) return;
                 RTPStreamer rtpStreamer = new RTPStreamer(requireContext());
-                keepAliveFFmpegSession = rtpStreamer.keepAliveStream(sessionDestinationStreamOutput.getSessionDestinationServiceProtocol(), sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort());
+                keepAliveFFmpegSession = rtpStreamer.keepAliveStream(sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort(), session != null ? session.getId().intValue() : 0);
                 convert2MpegtsFFmpegSession = rtpStreamer.convertStreamToMpegts(sessionDestinationStreamOutput.getSessionDestinationServiceProtocol(), sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort());
                 requireActivity().runOnUiThread(new Runnable() {
                     @Override

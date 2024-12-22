@@ -82,7 +82,7 @@ public class RTPStreamer {
         };
     }
 
-    public FFmpegSession keepAliveStream(String host, int port, int ssrc) {
+    public void keepAliveStream(String host, int port, int ssrc) {
         RTCPClient.sendRTCPRR(host, port, ssrc);
     }
 

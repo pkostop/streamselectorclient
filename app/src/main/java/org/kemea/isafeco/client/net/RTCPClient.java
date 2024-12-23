@@ -1,5 +1,7 @@
 package org.kemea.isafeco.client.net;
 
+import org.kemea.isafeco.client.utils.AppLogger;
+
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -28,22 +30,18 @@ public class RTCPClient {
         return buffer.array();
     }
 
-    // Send RTCP Receiver Reports (RR)
     public static void sendRTCPRR(String ip, int port, int ssrc) {
         try {
             InetAddress address = InetAddress.getByName(ip);
             DatagramSocket socket = new DatagramSocket();
 
             while (true) {
-                // Create RTCP RR packet
                 byte[] rrPacket = createRTCPRR(ssrc);
-
-                // Send RTCP RR
                 DatagramPacket packet = new DatagramPacket(rrPacket, rrPacket.length, address, port);
                 socket.send(packet);
-                System.out.println("Sent RTCP RR to " + ip + ":" + port);
-
-                // Sleep for 20 seconds before sending the next packet
+                AppLogger.getLogger().e("Sent RTCP RR to " + ip + ":" + port);
+                if (Thread.currentThread().isInterrupted())
+                    return;
                 Thread.sleep(5000);
             }
         } catch (Exception e) {

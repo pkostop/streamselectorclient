@@ -34,7 +34,7 @@ import com.arthenica.ffmpegkit.FFmpegKit;
 import com.arthenica.ffmpegkit.FFmpegSession;
 
 import org.kemea.isafeco.client.R;
-import org.kemea.isafeco.client.net.RTPStreamer;
+import org.kemea.isafeco.client.net.RTCPClient;
 import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorService;
 import org.kemea.isafeco.client.streamselector.stubs.output.Session;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionDestinationStreamOutput;
@@ -55,8 +55,9 @@ public class StreamReceiverFragment extends Fragment {
     private NavController navController;
     private StreamSelectorService streamSelectorService;
     private static final String TAG = "LiveStreamFragment";
-    private FFmpegSession keepAliveFFmpegSession = null;
     private FFmpegSession convert2MpegtsFFmpegSession = null;
+    private Thread keepAliveThread;
+    String streamReceiveAddress = null;
 
 
     @SuppressLint("MissingInflatedId")
@@ -78,8 +79,8 @@ public class StreamReceiverFragment extends Fragment {
 
     private void stopPlayback() {
         stopVlcPlayer();
-        if (keepAliveFFmpegSession != null)
-            FFmpegKit.cancel(keepAliveFFmpegSession.getSessionId());
+        if (keepAliveThread != null)
+            keepAliveThread.interrupt();
         if (convert2MpegtsFFmpegSession != null)
             FFmpegKit.cancel(convert2MpegtsFFmpegSession.getSessionId());
     }
@@ -101,28 +102,94 @@ public class StreamReceiverFragment extends Fragment {
 
     private void startStreamingSession(Session session) {
         streamSelectorService = new StreamSelectorService(requireContext());
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SessionDestinationStreamOutput sessionDestinationStreamOutput = null;
-                try {
-                    sessionDestinationStreamOutput = streamSelectorService.postSessionsSessionDestinationStreams(session.getId());
-                } catch (Exception e) {
-                    AppLogger.getLogger().e(e);
-                }
-                if (sessionDestinationStreamOutput == null) return;
-                RTPStreamer rtpStreamer = new RTPStreamer(requireContext());
-                rtpStreamer.keepAliveStream(sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort(), session != null ? session.getId().intValue() : 0);
-                convert2MpegtsFFmpegSession = rtpStreamer.convertStreamToMpegts(sessionDestinationStreamOutput.getSessionDestinationServiceProtocol(), sessionDestinationStreamOutput.getSessionDestinationServiceIp(), sessionDestinationStreamOutput.getSessionDestinationServicePort());
-                requireActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //initializeExoPlayer(rtpUrl);
-                        initVlcPlayer(RTPStreamer.LOCAL_STREAMING_ADDRESS_VLC);
-                    }
-                });
+        new Thread(() -> establishStreaming(session)).start();
+    }
+
+    private void establishStreaming(Session session) {
+        final SessionDestinationStreamOutput dest = streamSelectorService.postSessionsSessionDestinationStreams(session.getId());
+        if (dest == null) return;
+        streamReceiveAddress = String.format("%s://%s:%s", dest.getSessionDestinationServiceProtocol(), dest.getSessionDestinationServiceIp(), dest.getSessionDestinationServicePort());
+        keepAliveThread = new Thread(() -> {
+            RTCPClient.sendRTCPRR(dest.getSessionDestinationServiceIp(), dest.getSessionDestinationServicePort(), session != null ? session.getId().intValue() : 0);
+        });
+        keepAliveThread.start();
+        StreamReceiverFragment.this.requireActivity().runOnUiThread(() -> initVlcPlayer(streamReceiveAddress));
+        //RTPStreamer rtpStreamer = new RTPStreamer(requireContext());
+        //convert2MpegtsFFmpegSession = rtpStreamer.convertStreamToMpegts(dest.getSessionDestinationServiceProtocol(), dest.getSessionDestinationServiceIp(), dest.getSessionDestinationServicePort());
+    }
+
+    private void initVlcPlayer(String url) {
+        ArrayList<String> options = new ArrayList<>();
+        options.add("--network-caching=300");
+        options.add("--verbose=2");
+        libVLC = new LibVLC(requireContext(), options);
+        mediaPlayer = new MediaPlayer(libVLC);
+        IVLCVout ivlcVout = mediaPlayer.getVLCVout();
+        ivlcVout.setVideoView(sessionSurfaceView);
+        ivlcVout.attachViews();
+        ivlcVout.setWindowSize(sessionSurfaceView.getWidth(), sessionSurfaceView.getHeight());
+        Media media = new Media(libVLC, Uri.parse(url));
+        mediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
+        mediaPlayer.setMedia(media);
+        media.release();
+        mediaPlayer.setEventListener(event -> {
+            if (event == null)
+                return;
+
+            if (event.type == MediaPlayer.Event.EncounteredError) {
+                AppLogger.getLogger().e("Libvlc Error occurred in media player");
             }
-        }).start();
+
+        });
+        mediaPlayer.play();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (exoPlayer != null) {
+            exoPlayer.pause();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (exoPlayer != null) {
+            exoPlayer.play();
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        stopVlcPlayer();
+    }
+
+    private void stopExoPlayer() {
+        if (exoPlayer != null) {
+            exoPlayer.clearVideoSurface();
+            exoPlayer.release();
+            exoPlayer = null;
+        }
+    }
+
+    private void stopVlcPlayer() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            try {
+                mediaPlayer.stop();
+                mediaPlayer.release();
+            } catch (Exception e) {
+                AppLogger.getLogger().e(e);
+            }
+        }
+        if (libVLC != null) {
+            libVLC.release();
+        }
+    }
+
+    public void handleOnBackPressed() {
+        navController.navigateUp();
     }
 
     @OptIn(markerClass = UnstableApi.class)
@@ -193,77 +260,5 @@ public class StreamReceiverFragment extends Fragment {
         } catch (Exception e) {
             Log.e(TAG, "Player initialization failed", e);
         }
-    }
-
-    private void initVlcPlayer(String url) {
-        ArrayList<String> options = new ArrayList<>();
-        options.add("--network-caching=300");
-        options.add("--verbose=2");
-        libVLC = new LibVLC(requireContext(), options);
-        mediaPlayer = new MediaPlayer(libVLC);
-        IVLCVout ivlcVout = mediaPlayer.getVLCVout();
-        ivlcVout.setVideoView(sessionSurfaceView);
-        ivlcVout.attachViews();
-        ivlcVout.setWindowSize(sessionSurfaceView.getWidth(), sessionSurfaceView.getHeight());
-        Media media = new Media(libVLC, Uri.parse(RTPStreamer.LOCAL_STREAMING_ADDRESS_VLC));
-        mediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
-        mediaPlayer.setMedia(media);
-        media.release();
-        mediaPlayer.setEventListener(event -> {
-            if (event == null)
-                return;
-
-            if (event.type == MediaPlayer.Event.EncounteredError) {
-                AppLogger.getLogger().e("Libvlc Error occurred in media player");
-            }
-
-        });
-        mediaPlayer.play();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (exoPlayer != null) {
-            exoPlayer.pause();
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (exoPlayer != null) {
-            exoPlayer.play();
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        stopVlcPlayer();
-        if (keepAliveFFmpegSession != null)
-            FFmpegKit.cancel(keepAliveFFmpegSession.getSessionId());
-    }
-
-    private void stopExoPlayer() {
-        if (exoPlayer != null) {
-            exoPlayer.clearVideoSurface();
-            exoPlayer.release();
-            exoPlayer = null;
-        }
-    }
-
-    private void stopVlcPlayer() {
-        if (mediaPlayer != null) {
-            mediaPlayer.stop();
-            mediaPlayer.release();
-        }
-        if (libVLC != null) {
-            libVLC.release();
-        }
-    }
-
-    public void handleOnBackPressed() {
-        navController.navigateUp();
     }
 }

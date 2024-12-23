@@ -3,6 +3,7 @@ package org.kemea.isafeco.client.net;
 import static org.kemea.isafeco.client.utils.Util.readFile;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -77,13 +78,9 @@ public class RTPStreamer {
         return new LogCallback() {
             @Override
             public void apply(final com.arthenica.ffmpegkit.Log log) {
-                AppLogger.getLogger().e(log.getMessage());
+                //AppLogger.getLogger().e(log.getMessage());
             }
         };
-    }
-
-    public void keepAliveStream(String host, int port, int ssrc) {
-        RTCPClient.sendRTCPRR(host, port, ssrc);
     }
 
     public FFmpegSession convertStreamToMpegts(String protocol, String host, int port) {
@@ -93,7 +90,7 @@ public class RTPStreamer {
 
     public static FFmpegSession runFfmpegCommand(String ffmpegCommand) {
         FFmpegSessionCompleteCallback fFmpegSessionCompleteCallback = session -> {
-            AppLogger.getLogger().i(session.getOutput());
+            Log.i(ffmpegCommand, session.getOutput());
         };
         LogCallback logCallback = log -> AppLogger.getLogger().i(String.format("%s, %s", log.getSessionId(), log.getMessage()));
         return FFmpegKit.executeAsync(ffmpegCommand, fFmpegSessionCompleteCallback, logCallback, null);

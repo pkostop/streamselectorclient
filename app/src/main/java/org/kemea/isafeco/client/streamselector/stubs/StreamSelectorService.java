@@ -44,9 +44,14 @@ public class StreamSelectorService {
         streamSelectorClient.postStopSessionByID(sessionId, loginOutput.getToken());
     }
 
-    public SessionDestinationStreamOutput postSessionsSessionDestinationStreams(Long sessionId) throws Exception {
-        initStreamSelectorResources();
-        return streamSelectorClient.postSessionsSessionDestinationStreams(sessionId, loginOutput.getToken());
+    public SessionDestinationStreamOutput postSessionsSessionDestinationStreams(Long sessionId) {
+        try {
+            initStreamSelectorResources();
+            return streamSelectorClient.postSessionsSessionDestinationStreams(sessionId, loginOutput.getToken());
+        } catch (Exception e) {
+            AppLogger.getLogger().e(e);
+        }
+        return null;
     }
 
     public GetSessionsOutput getSessions(Integer limit, Integer offset, Integer clusterId, Long sessionId, Long contractId, String status) throws Exception {

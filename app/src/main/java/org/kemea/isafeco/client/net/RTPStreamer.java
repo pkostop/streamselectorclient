@@ -21,7 +21,7 @@ public class RTPStreamer {
     FFmpegSession ffmpegSession;
     Context context;
     private static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
-            "-f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libx264 -an -ssrc %s -f rtp %s";
+            "-f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libx265 -an -ssrc %s -f rtp %s";
     private static String FFMPEG_CMD_KEEP_ALIVE_RECEIVE_STREAM = "-re -f lavfi -i color=c=black:s=16x16:r=1 -vf \"fps=1\" -c:v rawvideo -pix_fmt yuv420p -f rtp -sdp_file stream.sdp %s";
     private static String FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS = "-loglevel debug -i %s -c:v copy -f mpegts %s";
 
@@ -78,7 +78,7 @@ public class RTPStreamer {
         return new LogCallback() {
             @Override
             public void apply(final com.arthenica.ffmpegkit.Log log) {
-                //AppLogger.getLogger().e(log.getMessage());
+                AppLogger.getLogger().e(log.getMessage());
             }
         };
     }

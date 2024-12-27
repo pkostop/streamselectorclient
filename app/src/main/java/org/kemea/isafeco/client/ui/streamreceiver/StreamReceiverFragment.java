@@ -84,7 +84,7 @@ public class StreamReceiverFragment extends Fragment {
     }
 
     private void stopPlayback() {
-        stopVlcPlayer();
+        StreamReceiverFragment.this.requireActivity().runOnUiThread(() -> stopVlcPlayer());
         if (timer != null) {
             timer.cancel();
             timer.purge();
@@ -191,17 +191,18 @@ public class StreamReceiverFragment extends Fragment {
     }
 
     private void stopVlcPlayer() {
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            try {
+        try {
+            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                 mediaPlayer.stop();
                 mediaPlayer.release();
-            } catch (Exception e) {
-                AppLogger.getLogger().e(e);
             }
+            if (libVLC != null) {
+                libVLC.release();
+            }
+        } catch (Exception e) {
+            AppLogger.getLogger().e(e);
         }
-        if (libVLC != null) {
-            libVLC.release();
-        }
+
     }
 
     public void handleOnBackPressed() {

@@ -2,12 +2,16 @@ package org.kemea.isafeco.client.net;
 
 import org.kemea.isafeco.client.utils.AppLogger;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 public class RTCPClient {
+    public static final int PLAYBACK_LOCAL_PORT = 56000;
+
     public static byte[] createRTCPRR(int ssrc) {
         ByteBuffer buffer = ByteBuffer.allocate(32);
 
@@ -31,22 +35,27 @@ public class RTCPClient {
     }
 
     public static void sendRTCPRR(String ip, int port, int ssrc) {
+        DatagramSocket socket = null;
+        byte[] rrPacket = createRTCPRR(ssrc);
+        InetAddress address;
         try {
-            InetAddress address = InetAddress.getByName(ip);
-            DatagramSocket socket = new DatagramSocket();
-
-            while (true) {
-                byte[] rrPacket = createRTCPRR(ssrc);
-                DatagramPacket packet = new DatagramPacket(rrPacket, rrPacket.length, address, port);
-                socket.send(packet);
-                AppLogger.getLogger().e("Sent RTCP RR to " + ip + ":" + port);
-                if (Thread.currentThread().isInterrupted())
-                    return;
-                Thread.sleep(5000);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            address = InetAddress.getByName(ip);
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
         }
+        DatagramPacket packet = new DatagramPacket(rrPacket, rrPacket.length, address, port);
+        try {
+            socket = new DatagramSocket(PLAYBACK_LOCAL_PORT);
+            socket.send(packet);
+        } catch (IOException ioe) {
+            AppLogger.getLogger().e(ioe.getMessage());
+        } finally {
+            if (socket != null) {
+                socket.disconnect();
+                socket.close();
+            }
+        }
+        AppLogger.getLogger().e("Sent RTCP RR to " + ip + ":" + port);
     }
 
     public static void main(String[] args) {

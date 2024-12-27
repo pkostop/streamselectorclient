@@ -34,19 +34,26 @@ import com.arthenica.ffmpegkit.FFmpegKit;
 import com.arthenica.ffmpegkit.FFmpegSession;
 
 import org.kemea.isafeco.client.R;
+import org.kemea.isafeco.client.net.NetUtil;
 import org.kemea.isafeco.client.net.RTCPClient;
+import org.kemea.isafeco.client.net.RTPStreamer;
 import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorService;
 import org.kemea.isafeco.client.streamselector.stubs.output.Session;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionDestinationStreamOutput;
 import org.kemea.isafeco.client.utils.AppLogger;
+import org.kemea.isafeco.client.utils.Util;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.interfaces.IVLCVout;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class StreamReceiverFragment extends Fragment {
+    public static final String KEEP_ALIVE_TIMER = "keepAliveTimer";
     private PlayerView playerView;
     private SurfaceView sessionSurfaceView;
     private ExoPlayer exoPlayer;
@@ -56,8 +63,7 @@ public class StreamReceiverFragment extends Fragment {
     private StreamSelectorService streamSelectorService;
     private static final String TAG = "LiveStreamFragment";
     private FFmpegSession convert2MpegtsFFmpegSession = null;
-    private Thread keepAliveThread;
-    String streamReceiveAddress = null;
+    Timer timer;
 
 
     @SuppressLint("MissingInflatedId")
@@ -79,8 +85,10 @@ public class StreamReceiverFragment extends Fragment {
 
     private void stopPlayback() {
         stopVlcPlayer();
-        if (keepAliveThread != null)
-            keepAliveThread.interrupt();
+        if (timer != null) {
+            timer.cancel();
+            timer.purge();
+        }
         if (convert2MpegtsFFmpegSession != null)
             FFmpegKit.cancel(convert2MpegtsFFmpegSession.getSessionId());
     }
@@ -108,15 +116,23 @@ public class StreamReceiverFragment extends Fragment {
     private void establishStreaming(Session session) {
         final SessionDestinationStreamOutput dest = streamSelectorService.postSessionsSessionDestinationStreams(session.getId());
         if (dest == null) return;
-        streamReceiveAddress = String.format("%s://%s:%s", dest.getSessionDestinationServiceProtocol(), dest.getSessionDestinationServiceIp(), dest.getSessionDestinationServicePort());
-        keepAliveThread = new Thread(() -> {
-            RTCPClient.sendRTCPRR(dest.getSessionDestinationServiceIp(), dest.getSessionDestinationServicePort(), session != null ? session.getId().intValue() : 0);
-        });
-        keepAliveThread.start();
-        StreamReceiverFragment.this.requireActivity().runOnUiThread(() -> initVlcPlayer(streamReceiveAddress));
-        //RTPStreamer rtpStreamer = new RTPStreamer(requireContext());
-        //convert2MpegtsFFmpegSession = rtpStreamer.convertStreamToMpegts(dest.getSessionDestinationServiceProtocol(), dest.getSessionDestinationServiceIp(), dest.getSessionDestinationServicePort());
+        timer = new Timer(KEEP_ALIVE_TIMER, true);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                RTCPClient.sendRTCPRR(dest.getSessionDestinationServiceIp(), dest.getSessionDestinationServicePort(), session != null ? session.getId().intValue() : 0);
+            }
+        }, 0, 10000);
+        String localhost = NetUtil.getLocalHostIPAddress();
+        File sdpFile = Util.writeSDPToTempFile(String.format(RTPStreamer.PLAYBACK_SDP, localhost, localhost, RTCPClient.PLAYBACK_LOCAL_PORT), requireContext());
+
+        RTPStreamer rtpStreamer = new RTPStreamer(requireContext());
+        convert2MpegtsFFmpegSession = rtpStreamer.convertStreamToMpegts(sdpFile.getAbsolutePath());
+
+        StreamReceiverFragment.this.requireActivity().runOnUiThread(() -> initVlcPlayer(RTPStreamer.LOCAL_STREAMING_ADDRESS_VLC));
+
     }
+
 
     private void initVlcPlayer(String url) {
         ArrayList<String> options = new ArrayList<>();

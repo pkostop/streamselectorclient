@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Map;
 
 public class NetUtil {
@@ -121,5 +123,15 @@ public class NetUtil {
             if (bis != null)
                 bis.close();
         }
+    }
+
+    public static String getLocalHostIPAddress() {
+        String hostAddress = null;
+        try {
+            hostAddress = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+        return hostAddress;
     }
 }

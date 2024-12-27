@@ -16,15 +16,21 @@ import com.arthenica.ffmpegkit.ReturnCode;
 import org.kemea.isafeco.client.utils.AppLogger;
 
 public class RTPStreamer {
-    public static final String LOCAL_STREAMING_ADDRESS = "udp://127.0.0.1:9090";
+    public static final String LOCAL_STREAMING_ADDRESS_FFMPEG = "udp://127.0.0.1:9090";
     public static final String LOCAL_STREAMING_ADDRESS_VLC = "udp://@127.0.0.1:9090";
     FFmpegSession ffmpegSession;
     Context context;
     private static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
             "-f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libx265 -an -ssrc %s -f rtp %s";
-    private static String FFMPEG_CMD_KEEP_ALIVE_RECEIVE_STREAM = "-re -f lavfi -i color=c=black:s=16x16:r=1 -vf \"fps=1\" -c:v rawvideo -pix_fmt yuv420p -f rtp -sdp_file stream.sdp %s";
-    private static String FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS = "-loglevel debug -i %s -c:v copy -f mpegts %s";
+    private static String FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS = " -loglevel debug -protocol_whitelist file,crypto,data,udp,rtp -probesize 5000000 -analyzeduration 10000000 -i %s -f mpegts %s";
 
+    public static final String PLAYBACK_SDP = "v=0\n" +
+            "o=- 0 0 IN IP4 %s\n" +
+            "s=RTP Stream\n" +
+            "c=IN IP4 %s\n" +
+            "t=0 0\n" +
+            "m=video %s RTP/AVP 96\n" +
+            "a=rtpmap:96 H265/90000";
 
     static final String SDP_FILE_OPTION = "-sdp_file %s";
 
@@ -83,14 +89,14 @@ public class RTPStreamer {
         };
     }
 
-    public FFmpegSession convertStreamToMpegts(String protocol, String host, int port) {
-        String originAddress = String.format("%s://%s:%s", protocol, host, port);
-        return runFfmpegCommand(String.format(FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS, originAddress, LOCAL_STREAMING_ADDRESS));
+    public FFmpegSession convertStreamToMpegts(String sdpFilePath) {
+        String ffmpegCmd = String.format(FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS, sdpFilePath, RTPStreamer.LOCAL_STREAMING_ADDRESS_FFMPEG);
+        return runFfmpegCommand(ffmpegCmd);
     }
 
     public static FFmpegSession runFfmpegCommand(String ffmpegCommand) {
         FFmpegSessionCompleteCallback fFmpegSessionCompleteCallback = session -> {
-            Log.i(ffmpegCommand, session.getOutput());
+            Log.i("FFMPEG-CONVERT", session.getOutput());
         };
         LogCallback logCallback = log -> AppLogger.getLogger().i(String.format("%s, %s", log.getSessionId(), log.getMessage()));
         return FFmpegKit.executeAsync(ffmpegCommand, fFmpegSessionCompleteCallback, logCallback, null);

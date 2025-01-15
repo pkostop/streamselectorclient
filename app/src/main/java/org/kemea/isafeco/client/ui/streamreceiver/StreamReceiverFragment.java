@@ -9,23 +9,11 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
-import androidx.media3.common.MediaItem;
-import androidx.media3.common.PlaybackException;
-import androidx.media3.common.Player;
-import androidx.media3.common.util.UnstableApi;
-import androidx.media3.exoplayer.DefaultLoadControl;
-import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.exoplayer.LoadControl;
-import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
-import androidx.media3.exoplayer.trackselection.TrackSelector;
-import androidx.media3.ui.PlayerView;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
@@ -54,9 +42,7 @@ import java.util.TimerTask;
 
 public class StreamReceiverFragment extends Fragment {
     public static final String KEEP_ALIVE_TIMER = "keepAliveTimer";
-    private PlayerView playerView;
     private SurfaceView sessionSurfaceView;
-    private ExoPlayer exoPlayer;
     private LibVLC libVLC;
     MediaPlayer mediaPlayer = null;
     private NavController navController;
@@ -163,31 +149,17 @@ public class StreamReceiverFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        if (exoPlayer != null) {
-            exoPlayer.pause();
-        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (exoPlayer != null) {
-            exoPlayer.play();
-        }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         stopVlcPlayer();
-    }
-
-    private void stopExoPlayer() {
-        if (exoPlayer != null) {
-            exoPlayer.clearVideoSurface();
-            exoPlayer.release();
-            exoPlayer = null;
-        }
     }
 
     private void stopVlcPlayer() {
@@ -209,73 +181,4 @@ public class StreamReceiverFragment extends Fragment {
         navController.navigateUp();
     }
 
-    @OptIn(markerClass = UnstableApi.class)
-    private void initializeExoPlayer(String rtpUrl) {
-
-        if (playerView == null) {
-            Log.e(TAG, "*** PlayerView is null. Ensure the layout is inflated correctly.");
-            Toast.makeText(requireContext(), "PlayerView not initialized", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        // 1. Create a DefaultTrackSelector for track selection.
-        TrackSelector trackSelector = new DefaultTrackSelector(requireContext());
-
-        // 2. Create a DefaultLoadControl for buffering management (optional, but recommended).
-        LoadControl loadControl = new DefaultLoadControl();
-        exoPlayer = new ExoPlayer.Builder(requireContext())
-                .setTrackSelector(trackSelector)
-                .setLoadControl(loadControl) // Optional
-                .build();
-
-        //exoPlayer = new ExoPlayer.Builder(requireContext()).build();
-        exoPlayer.clearVideoSurface();
-        Log.d(TAG, " >>> PlayerView: " + playerView);
-
-        playerView.setPlayer(exoPlayer);
-
-        exoPlayer.addListener(new Player.Listener() {
-            @Override
-            public void onPlayerError(PlaybackException error) {
-                Log.e("ExoPlayer", "Playback error: " + error.getMessage(), error);
-            }
-
-            @Override
-            public void onSurfaceSizeChanged(int width, int height) {
-                Log.d("ExoPlayer", "Surface size changed: " + width + " x " + height);
-            }
-        });
-
-        try {
-            // Create a MediaItem with the RTSP URL
-            MediaItem mediaItem = MediaItem.fromUri(Uri.parse(rtpUrl));
-
-            // Set the media item to the player
-            exoPlayer.setMediaItem(mediaItem);
-
-
-            exoPlayer.addListener(new Player.Listener() {
-                @Override
-                public void onEvents(@NonNull Player player, @NonNull Player.Events events) {
-                    if (events.contains(Player.EVENT_PLAYER_ERROR)) {
-                        PlaybackException error = player.getPlayerError();
-                        if (error != null) {
-                            Log.e(TAG, "Playback error: " + error.getMessage(), error);
-
-                            // Display error to the user
-                            TextView errorMessage = requireView().findViewById(R.id.error_message);
-                            errorMessage.setVisibility(View.VISIBLE);
-                            errorMessage.setText("Error: " + error.getMessage());
-                            Toast.makeText(requireContext(), "Playback error occurred", Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }
-            });
-            // Prepare and start the player
-            exoPlayer.prepare();
-            exoPlayer.play();
-        } catch (Exception e) {
-            Log.e(TAG, "Player initialization failed", e);
-        }
-    }
 }

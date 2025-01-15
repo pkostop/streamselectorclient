@@ -60,10 +60,6 @@ dependencies {
     implementation(libs.nanohttpd)
     implementation(libs.ffmpeg.kit.full)
     implementation(libs.gson)
-    implementation(libs.media3.exoplayer)
-    implementation(libs.media3.exoplayer.dash)
-    implementation(libs.media3.ui)
-    implementation(libs.media3.exoplayer.rtsp)
     implementation(libs.firebase.inappmessaging)
     implementation(libs.libvlc.all)
 

@@ -1,6 +1,6 @@
 [versions]
 agp = "8.7.2"
-ffmpegKitFull = "5.1"
+ffmpegKitFull = "6.0"
 firebaseInappmessaging = "21.0.1"
 gson = "2.11.0"
 junit = "4.13.2"

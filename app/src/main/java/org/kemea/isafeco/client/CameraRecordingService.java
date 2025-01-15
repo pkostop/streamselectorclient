@@ -55,6 +55,30 @@ public class CameraRecordingService extends Service {
         }
     }
 
+    @Override
+    public void onLowMemory() {
+        AppLogger.getLogger().e("Memory Low");
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        AppLogger.getLogger().e(String.format("Trim Memory level: %s", level));
+        if (TRIM_MEMORY_RUNNING_LOW == level || TRIM_MEMORY_RUNNING_CRITICAL == level) {
+            rtpStreamer.stopStreaming();
+        }
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        AppLogger.getLogger().e("Unbinding Foreground Service");
+        return true;
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        AppLogger.getLogger().e("Rebinding Foreground Service");
+    }
+
     private void startStreaming() throws Exception {
         if (rtpStreamer == null || applicationProperties == null)
             return;

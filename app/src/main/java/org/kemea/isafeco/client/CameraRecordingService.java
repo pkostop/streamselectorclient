@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
+import android.os.Debug;
 import android.os.IBinder;
 import android.widget.Toast;
 
@@ -63,9 +64,13 @@ public class CameraRecordingService extends Service {
     @Override
     public void onTrimMemory(int level) {
         AppLogger.getLogger().e(String.format("Trim Memory level: %s", level));
+        Debug.MemoryInfo memoryInfo = new Debug.MemoryInfo();
+        Debug.getMemoryInfo(memoryInfo);
         if (TRIM_MEMORY_RUNNING_LOW == level || TRIM_MEMORY_RUNNING_CRITICAL == level) {
             rtpStreamer.stopStreaming();
+            Toast.makeText(getApplicationContext(), String.format("Low memory, total heap: %skb-, streaming is stopped", memoryInfo.getTotalPss()), Toast.LENGTH_LONG).show();
         }
+
     }
 
     @Override

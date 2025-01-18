@@ -21,7 +21,7 @@ public class RTPStreamer {
     FFmpegSession ffmpegSession;
     Context context;
     private static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
-            "-f android_camera -i 0:0 -s 32x32 -map 0:v -c:v libx265 -b:v 128k -r 1 -preset ultrafast -threads 1 -an -ssrc %s -maxrate 128k -minrate 128k -bufsize 128k -f rtp %s";
+            "-f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libx265 -b:v 96k -r 3 -preset ultrafast -threads 2 -an -ssrc %s -bufsize 96k -f rtp %s";
     private static String FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS = " -loglevel debug -protocol_whitelist file,crypto,data,udp,rtp -probesize 5000000 -analyzeduration 10000000 -i %s -f mpegts %s";
 
     public static final String PLAYBACK_SDP = "v=0\n" +

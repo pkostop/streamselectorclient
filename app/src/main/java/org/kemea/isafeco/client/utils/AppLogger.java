@@ -9,6 +9,7 @@ import java.util.List;
 public class AppLogger {
     static final AppLogger instance = new AppLogger();
     List<String> logs;
+    public static final int LOG_SIZE = 500;
 
     public static final AppLogger getLogger() {
         return instance;
@@ -20,6 +21,8 @@ public class AppLogger {
 
     public void i(String msg) {
         Log.i(AppLogger.class.getName(), msg);
+        if (logs.size() > LOG_SIZE)
+            logs.clear();
         logs.add(msg);
     }
 
@@ -27,11 +30,15 @@ public class AppLogger {
         if (msg == null)
             return;
         Log.e(AppLogger.class.getName(), msg);
+        if (logs.size() > LOG_SIZE)
+            logs.clear();
         logs.add(msg);
     }
 
     public void e(Throwable t) {
         Log.e(AppLogger.class.getName(), Util.stacktrace(t));
+        if (logs.size() > LOG_SIZE)
+            logs.clear();
         logs.add(Util.stacktrace(t));
     }
 

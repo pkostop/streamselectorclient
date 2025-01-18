@@ -66,7 +66,7 @@ public class CameraRecordingService extends Service {
         AppLogger.getLogger().e(String.format("Trim Memory level: %s", level));
         Debug.MemoryInfo memoryInfo = new Debug.MemoryInfo();
         Debug.getMemoryInfo(memoryInfo);
-        if (TRIM_MEMORY_RUNNING_LOW == level || TRIM_MEMORY_RUNNING_CRITICAL == level) {
+        if (TRIM_MEMORY_RUNNING_CRITICAL == level) {
             rtpStreamer.stopStreaming();
             Toast.makeText(getApplicationContext(), String.format("Low memory, total heap: %skb-, streaming is stopped", memoryInfo.getTotalPss()), Toast.LENGTH_LONG).show();
         }
@@ -106,7 +106,7 @@ public class CameraRecordingService extends Service {
             "t=0 0\n" +
             "a=tool:libavformat LIBAVFORMAT_VERSION\n" +
             "m=video 9095 RTP/AVP 96\n" +
-            "a=rtpmap:96 H264/90000\n";
+            "a=rtpmap:96 H265/90000\n";
 
     private void trasmitToStreamSelector() throws Exception {
         if (streamSelectorService == null || rtpStreamer == null)

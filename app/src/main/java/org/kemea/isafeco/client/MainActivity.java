@@ -101,10 +101,10 @@ public class MainActivity extends AppCompatActivity {
             applicationProperties.setProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS, "rtp://127.0.0.1:9000");
         }
         if (Util.isEmpty(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS))) {
-            applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS, "http://10.10.10.74:30300");
+            applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS, "http://10.10.10.11:30900");
         }
         if (Util.isEmpty(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME))) {
-            applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME, "1-0");
+            applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME, "1-2");
         }
         if (Util.isEmpty(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD))) {
             applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD, "azertyui");

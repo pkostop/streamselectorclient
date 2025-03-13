@@ -105,7 +105,7 @@ public class CameraRecordingService extends Service {
             "c=IN IP4 127.0.0.1\n" +
             "t=0 0\n" +
             "a=tool:libavformat LIBAVFORMAT_VERSION\n" +
-            "m=video 9095 RTP/AVP 96\n" +
+            "m=video 0 RTP/AVP 96\n" +
             "a=rtpmap:96 H265/90000\n";
 
     private void trasmitToStreamSelector() throws Exception {

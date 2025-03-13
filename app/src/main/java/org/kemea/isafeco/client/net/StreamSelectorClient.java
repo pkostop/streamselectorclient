@@ -21,6 +21,7 @@ public class StreamSelectorClient {
 
     private static final int READ_TIMEOUT = 10000;
     private static final int CONNECT_TIMEOUT = 10000;
+    public static final String NOMADE_COPAEUROPE = "NOMADE_COPAEUROPE";
     String streamSelectorUrl;
     Context context;
 
@@ -48,7 +49,7 @@ public class StreamSelectorClient {
         loginInput.setLogin(userName);
         loginInput.setPassword(password);
         loginInput.setApplicationDeviceId(deviceId);
-        loginInput.setApplicationType("COPAEUROPE");
+        loginInput.setApplicationType(NOMADE_COPAEUROPE);
         loginInput.setApplicationOs("ANDROID");
         loginInput.setApplicationDeviceName("any");
         String json = Util.toJson(loginInput);

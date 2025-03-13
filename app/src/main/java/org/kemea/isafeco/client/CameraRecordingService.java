@@ -101,7 +101,7 @@ public class CameraRecordingService extends Service {
 
     public static final String SDP = "\n" +
             "o=- 0 0 IN IP4 127.0.0.1\n" +
-            "s=No Name\n" +
+            "s=%s\n" +
             "c=IN IP4 127.0.0.1\n" +
             "t=0 0\n" +
             "a=tool:libavformat LIBAVFORMAT_VERSION\n" +
@@ -115,7 +115,10 @@ public class CameraRecordingService extends Service {
             @Override
             public void run() {
                 try {
-                    SessionSourceStreamOutput sessionSourceStreamOutput = streamSelectorService.postSessionsSessionSourceStreams(1L, SDP);
+                    String organizationUnit = null;
+                    if (applicationProperties.getProperty(ApplicationProperties.PROP_USER_ORG) != null)
+                        organizationUnit = getResources().getStringArray(R.array.organizations)[Integer.parseInt(applicationProperties.getProperty(ApplicationProperties.PROP_USER_ORG))];
+                    SessionSourceStreamOutput sessionSourceStreamOutput = streamSelectorService.postSessionsSessionSourceStreams(1L, String.format(SDP, organizationUnit != null ? organizationUnit : "ALL_FORCES"));
                     sessionId = sessionSourceStreamOutput.getSessionId();
                     String streamingAddress = String.format("%s://%s:%s?pkt_size=1316", sessionSourceStreamOutput.getSessionSourceServiceProtocol(), sessionSourceStreamOutput.getSessionSourceServiceIp(), sessionSourceStreamOutput.getSessionSourceServicePort());
                     AppLogger.getLogger().e(String.format("Streaming to %s", streamingAddress));

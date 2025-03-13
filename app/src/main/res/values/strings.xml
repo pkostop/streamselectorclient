@@ -5,4 +5,10 @@
     <string name="title_logs">Logs</string>
     <string name="title_receive_stream">Receive Stream</string>
     <string name="start_stop_camera">Start/Stop Camera</string>
+
+    <string-array name="organizations">
+        <item>ALL_FORCES</item>
+        <item>HELLENIC_POLICE</item>
+        <item>HELLENIC_FIRE_SERVICE</item>
+    </string-array>
 </resources>

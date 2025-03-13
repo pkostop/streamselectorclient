@@ -23,6 +23,10 @@ import org.kemea.isafeco.client.streamselector.stubs.output.Session;
 import org.kemea.isafeco.client.utils.AppLogger;
 import org.kemea.isafeco.client.utils.Util;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 public class StreamInputFragment extends Fragment {
 
     private EditText rtpStreamAddressInput;
@@ -106,7 +110,19 @@ public class StreamInputFragment extends Fragment {
 
     @NonNull
     private static String sessionDescription(Session x) {
-        return String.format("(session id) %s, (created at) %s, (status) %s, (cluster id) %s, (contract id) %s", nvl(x.getId()), nvl(x.getCreatedAt()), nvl(x.getStatus()), nvl(x.getClusterId()), nvl(x.getContractId()));
+        String sessionName = getSessionName(x);
+        return String.format("(session id) %s, (created at) %s, (status) %s, (cluster id) %s, (contract id) %s, (organization) %s", nvl(x.getId()), nvl(x.getCreatedAt()), nvl(x.getStatus()), nvl(x.getClusterId()), nvl(x.getContractId()), nvl(sessionName));
+    }
+
+    private static String getSessionName(Session x) {
+        Properties properties = new Properties();
+        try {
+            if (x.getSdp() != null)
+                properties.load(new ByteArrayInputStream(x.getSdp().getBytes()));
+        } catch (IOException e) {
+            AppLogger.getLogger().e(e);
+        }
+        return properties != null && properties.containsKey("s") ? properties.getProperty("s") : "";
     }
 
     public static String nvl(String val) {

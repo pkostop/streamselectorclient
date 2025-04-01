@@ -1,9 +1,12 @@
 package org.kemea.isafeco.client.net;
 
+import org.kemea.isafeco.client.utils.Util;
+
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 
 public class MonitoringAnalyticsClient {
@@ -18,7 +21,7 @@ public class MonitoringAnalyticsClient {
         this.url = url;
     }
 
-    public void sendMonitoringAnalyticsRequest(long txMBytes, long heapMemory) throws UnknownHostException {
+    public void sendMonitoringAnalyticsRequest(long txMBytes, long heapMemory) throws Exception {
         MonitoringAnalyticsRequest monitoringAnalyticsRequest = new MonitoringAnalyticsRequest();
         Data data = new Data();
         monitoringAnalyticsRequest.setData(data);
@@ -33,6 +36,7 @@ public class MonitoringAnalyticsClient {
         test.setUseCase(USE_CASE_OC_9_1);
         test.setTestCaseId(TEST_CASE_ID);
         monitoringAnalyticsRequest.setSourceType(NETWORK_APPLICATION);
+        NetUtil.post(url, Util.toJson(monitoringAnalyticsRequest), Collections.EMPTY_MAP, StandardCharsets.UTF_8.name(), 10000, 10000);
     }
 }
 

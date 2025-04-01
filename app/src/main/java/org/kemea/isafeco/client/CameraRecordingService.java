@@ -21,11 +21,15 @@ import org.kemea.isafeco.client.utils.AppLogger;
 import org.kemea.isafeco.client.utils.ApplicationProperties;
 import org.kemea.isafeco.client.utils.Util;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class CameraRecordingService extends Service {
 
     public static final String CAMERA_RECORDING_CHANNEL = "CameraRecordingChannel";
     public static final String ISAFECO_CLIENT_NOTIFICATION_CHANNEL = "IsafecoClientNotificationChannel";
     public static final String ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING = "ISAFECO Video Streaming Application is recording";
+    public static final String METRICS_TIMER = "METRICS_TIMER";
     RTPStreamer rtpStreamer;
     StreamSelectorService streamSelectorService;
 
@@ -33,6 +37,8 @@ public class CameraRecordingService extends Service {
     String sdpFilePath = null;
     static final String CHANNEL_ID = "100";
     private Long sessionId;
+
+    Timer timer;
 
     @Nullable
     @Override
@@ -97,6 +103,14 @@ public class CameraRecordingService extends Service {
         if (!Util.isEmpty(streamingAddress)) {
             rtpStreamer.startStreaming(streamingAddress, sdpFilePath, 100L);
         }
+
+        timer = new Timer(METRICS_TIMER, true);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                //new MonitoringAnalyticsClient()
+            }
+        }, 0, 3000);
     }
 
     public static final String SDP = "\n" +
@@ -170,6 +184,8 @@ public class CameraRecordingService extends Service {
         if (rtpStreamer != null) {
             rtpStreamer.stopStreaming();
         }
-
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 }

@@ -68,6 +68,17 @@
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_width="match_parent" />
 
+            <EditText
+                android:id="@+id/metrics_monitoring_url"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:hint="Metrics Mon URL"
+                android:inputType="text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_width="match_parent" />
+
             <Spinner
                 android:id="@+id/userorg"
                 android:layout_height="wrap_content"

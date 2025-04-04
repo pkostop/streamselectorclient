@@ -14,6 +14,8 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import org.kemea.isafeco.client.net.ApplicationMonitoringUtil;
+import org.kemea.isafeco.client.net.MonitoringAnalyticsClient;
 import org.kemea.isafeco.client.net.RTPStreamer;
 import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorService;
 import org.kemea.isafeco.client.streamselector.stubs.output.SessionSourceStreamOutput;
@@ -97,18 +99,25 @@ public class CameraRecordingService extends Service {
         String streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS);
         if (!Util.isEmpty(streamingAddress)) {
             trasmitToStreamSelector();
+            sendMetrics();
             return;
         }
         streamingAddress = applicationProperties.getProperty(ApplicationProperties.PROP_RTP_STREAMING_ADDRESS);
         if (!Util.isEmpty(streamingAddress)) {
             rtpStreamer.startStreaming(streamingAddress, sdpFilePath, 100L);
         }
+    }
 
+    private void sendMetrics() {
         timer = new Timer(METRICS_TIMER, true);
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                //new MonitoringAnalyticsClient()
+                try {
+                    new MonitoringAnalyticsClient(applicationProperties.getProperty(ApplicationProperties.PROP_METRICS_URL)).sendMonitoringAnalyticsRequest(ApplicationMonitoringUtil.getTransmittedBytes(), ApplicationMonitoringUtil.getUsedHeapMemory());
+                } catch (Exception e) {
+                    AppLogger.getLogger().e(e);
+                }
             }
         }, 0, 3000);
     }

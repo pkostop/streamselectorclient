@@ -34,6 +34,7 @@ public class SettingsFragment extends Fragment {
         final EditText editTextStreamSelectorAddress = binding.streamSelectorAddress;
         final EditText editTextStreamSelectorUsername = binding.streamSelectorUsername;
         final EditText editTextStreamSelectorPassword = binding.streamSelectorPassword;
+        final EditText editMetricsUrl = binding.metricsMonitoringUrl;
         final Spinner orgSpinner = binding.userorg;
         orgSpinner.setAdapter(ArrayAdapter.createFromResource(this.getContext(), R.array.organizations, android.R.layout.simple_spinner_item));
         ((ArrayAdapter) orgSpinner.getAdapter()).setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -48,6 +49,8 @@ public class SettingsFragment extends Fragment {
             editTextStreamSelectorUsername.setText(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME));
         if (applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD) != null)
             editTextStreamSelectorPassword.setText(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD));
+        if (applicationProperties.getProperty(ApplicationProperties.PROP_METRICS_URL) != null)
+            editMetricsUrl.setText(applicationProperties.getProperty(ApplicationProperties.PROP_METRICS_URL));
 
         binding.saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,6 +59,7 @@ public class SettingsFragment extends Fragment {
                 applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_ADDRESS, editTextStreamSelectorAddress.getText().toString());
                 applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_USERNAME, editTextStreamSelectorUsername.getText().toString());
                 applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD, editTextStreamSelectorPassword.getText().toString());
+                applicationProperties.setProperty(ApplicationProperties.PROP_METRICS_URL, editMetricsUrl.getText().toString());
                 if (orgSpinner.getSelectedItemId() >= 0)
                     applicationProperties.setProperty(ApplicationProperties.PROP_USER_ORG, String.valueOf(orgSpinner.getSelectedItemId()));
 

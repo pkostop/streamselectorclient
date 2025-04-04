@@ -109,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
         if (Util.isEmpty(applicationProperties.getProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD))) {
             applicationProperties.setProperty(ApplicationProperties.PROP_STREAM_SELECTOR_PASSWORD, "azertyui");
         }
+        if (Util.isEmpty(applicationProperties.getProperty(ApplicationProperties.PROP_METRICS_URL))) {
+            applicationProperties.setProperty(ApplicationProperties.PROP_METRICS_URL, "https://portal-monitoring-analytics.fidal-he.eu/fidal/collector/v1/data/app");
+        }
         applicationProperties.save();
     }
 }

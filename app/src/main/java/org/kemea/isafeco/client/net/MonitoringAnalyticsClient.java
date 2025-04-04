@@ -6,8 +6,9 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MonitoringAnalyticsClient {
     public static final String NETWORK_APPLICATION = "Network_Application";
@@ -36,7 +37,11 @@ public class MonitoringAnalyticsClient {
         test.setUseCase(USE_CASE_OC_9_1);
         test.setTestCaseId(TEST_CASE_ID);
         monitoringAnalyticsRequest.setSourceType(NETWORK_APPLICATION);
-        NetUtil.post(url, Util.toJson(monitoringAnalyticsRequest), Collections.EMPTY_MAP, StandardCharsets.UTF_8.name(), 10000, 10000);
+        Map<String, String> headers = new HashMap<String, String>();
+        String json = Util.toJson(monitoringAnalyticsRequest);
+        headers.put("Content-Type", "application/json");
+        headers.put("Content-Length", String.valueOf(json.length()));
+        NetUtil.post(url, json, headers, StandardCharsets.UTF_8.name(), 10000, 10000);
     }
 }
 

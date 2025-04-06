@@ -114,7 +114,8 @@ public class CameraRecordingService extends Service {
             @Override
             public void run() {
                 try {
-                    new MonitoringAnalyticsClient(applicationProperties.getProperty(ApplicationProperties.PROP_METRICS_URL)).sendMonitoringAnalyticsRequest(ApplicationMonitoringUtil.getTransmittedBytes(), ApplicationMonitoringUtil.getUsedHeapMemory());
+                    new MonitoringAnalyticsClient(applicationProperties.getProperty(ApplicationProperties.PROP_METRICS_URL)).
+                            sendMonitoringAnalyticsRequest(ApplicationMonitoringUtil.getTransmittedBytes(), ApplicationMonitoringUtil.getUsedHeapMemory());
                 } catch (Exception e) {
                     AppLogger.getLogger().e(e);
                 }

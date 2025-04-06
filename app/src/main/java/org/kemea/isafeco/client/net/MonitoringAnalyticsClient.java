@@ -2,7 +2,6 @@ package org.kemea.isafeco.client.net;
 
 import org.kemea.isafeco.client.utils.Util;
 
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -15,7 +14,8 @@ public class MonitoringAnalyticsClient {
     public static final String USE_CASE_OC_9_1 = "OC9_1";
     public static final String TEST_CASE_OPEN_CALL_TC = "Open Call TC";
     public static final String TEST_CASE_ID = "dummy";
-    public static final String MOBILE_DEVICE_IP = "IP";
+    public static final String MOBILE_DEVICE_IP = "ip";
+    public static final String ISO8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     String url;
 
     public MonitoringAnalyticsClient(String url) {
@@ -26,11 +26,11 @@ public class MonitoringAnalyticsClient {
         MonitoringAnalyticsRequest monitoringAnalyticsRequest = new MonitoringAnalyticsRequest();
         Data data = new Data();
         monitoringAnalyticsRequest.setData(data);
-        data.setKpis(Arrays.asList(new Kpi("Data Transmitted in bytes", String.valueOf(txMBytes), "MB"),
-                new Kpi("Application Heap Memory Consumption", String.valueOf(heapMemory), "MB")
+        data.setKpis(Arrays.asList(new Kpi("txmbytes", String.valueOf(txMBytes), "MB"),
+                new Kpi("appheap", String.valueOf(heapMemory), "MB")
         ));
-        data.setTimestamp(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()));
-        data.setMoids(Arrays.asList(new Moid(MOBILE_DEVICE_IP, InetAddress.getLocalHost().getHostAddress())));
+        data.setTimestamp(new SimpleDateFormat(ISO8601_FORMAT).format(new Date()));
+        data.setMoids(Arrays.asList(new Moid(MOBILE_DEVICE_IP, ApplicationMonitoringUtil.getDeviceIPAddress())));
         Test test = new Test();
         monitoringAnalyticsRequest.setTest(test);
         test.setTestCase(TEST_CASE_OPEN_CALL_TC);

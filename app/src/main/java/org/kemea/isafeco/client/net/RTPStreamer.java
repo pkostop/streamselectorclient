@@ -12,6 +12,8 @@ import com.arthenica.ffmpegkit.FFmpegSession;
 import com.arthenica.ffmpegkit.FFmpegSessionCompleteCallback;
 import com.arthenica.ffmpegkit.LogCallback;
 import com.arthenica.ffmpegkit.ReturnCode;
+import com.arthenica.ffmpegkit.Statistics;
+import com.arthenica.ffmpegkit.StatisticsCallback;
 
 import org.kemea.isafeco.client.utils.AppLogger;
 
@@ -21,7 +23,7 @@ public class RTPStreamer {
     FFmpegSession ffmpegSession;
     Context context;
     private static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
-            "-f android_camera -i 0:0 -s 176x144 -map 0:v -c:v libx265 -an -ssrc %s -f rtp %s";
+            "-f android_camera -i 0:0 -s 360x640 -map 0:v -c:v libx265 -an -ssrc %s -f rtp %s";
     private static String FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS = " -loglevel debug -protocol_whitelist file,crypto,data,udp,rtp -probesize 5000000 -analyzeduration 10000000 -i %s -f mpegts %s";
 
     public static final String PLAYBACK_SDP = "v=0\n" +
@@ -50,7 +52,12 @@ public class RTPStreamer {
                 destinationAddress
         );
         AppLogger.getLogger().e(ffmpegCommand);
-        ffmpegSession = FFmpegKit.executeAsync(ffmpegCommand, getfFmpegSessionCompleteCallback(sdpFile), getLogCallback(), null);
+        ffmpegSession = FFmpegKit.executeAsync(ffmpegCommand, getfFmpegSessionCompleteCallback(sdpFile), getLogCallback(), new StatisticsCallback() {
+            @Override
+            public void apply(Statistics statistics) {
+                AppLogger.getLogger().e(String.valueOf(statistics.getBitrate()));
+            }
+        });
     }
 
     public void stopStreaming() {

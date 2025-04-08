@@ -130,7 +130,7 @@ public class CameraRecordingService extends Service {
             "t=0 0\n" +
             "a=tool:libavformat LIBAVFORMAT_VERSION\n" +
             "m=video 0 RTP/AVP 96\n" +
-            "a=rtpmap:96 H265/90000\n";
+            "a=rtpmap:96 H264/90000\n";
 
     private void trasmitToStreamSelector() throws Exception {
         if (streamSelectorService == null || rtpStreamer == null)
@@ -159,9 +159,9 @@ public class CameraRecordingService extends Service {
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         NotificationChannel notificationChannel = notificationManager.getNotificationChannel(CHANNEL_ID);
         if (notificationChannel == null) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, ISAFECO_CLIENT_NOTIFICATION_CHANNEL, NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription(ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING);
-            notificationManager.createNotificationChannel(channel);
+            notificationChannel = new NotificationChannel(CHANNEL_ID, ISAFECO_CLIENT_NOTIFICATION_CHANNEL, NotificationManager.IMPORTANCE_DEFAULT);
+            notificationChannel.setDescription(ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING);
+            notificationManager.createNotificationChannel(notificationChannel);
         }
         return notificationChannel;
     }
@@ -169,6 +169,9 @@ public class CameraRecordingService extends Service {
     protected void createNotification(NotificationChannel notificationChannel) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CAMERA_RECORDING_CHANNEL);
         builder.setContentTitle(ISAFECO_VIDEO_STREAMING_APPLICATION_IS_RECORDING);
+        builder.setContentText("Streaming Video...");
+        builder.setSmallIcon(R.drawable.ic_notifications_black_24dp);
+        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
         if (notificationChannel != null)
             builder.setChannelId(notificationChannel.getId());
         Notification notification = builder.build();

@@ -11,11 +11,12 @@ import java.util.Map;
 
 public class MonitoringAnalyticsClient {
     public static final String NETWORK_APPLICATION = "Network_Application";
-    public static final String USE_CASE_OC_9_1 = "OC9_1";
+    public static final String USE_CASE_OC_9_1 = "OC09_1";
     public static final String TEST_CASE_OPEN_CALL_TC = "Open Call TC";
     public static final String TEST_CASE_ID = "dummy";
     public static final String MOBILE_DEVICE_IP = "ip";
     public static final String ISO8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    public static final String STREAM_SELECTOR = "StreamSelector";
     String url;
 
     public MonitoringAnalyticsClient(String url) {
@@ -33,10 +34,13 @@ public class MonitoringAnalyticsClient {
         data.setMoids(Arrays.asList(new Moid(MOBILE_DEVICE_IP, ApplicationMonitoringUtil.getDeviceIPAddress())));
         Test test = new Test();
         monitoringAnalyticsRequest.setTest(test);
-        test.setTestCase(TEST_CASE_OPEN_CALL_TC);
-        test.setUseCase(USE_CASE_OC_9_1);
-        test.setTestCaseId(TEST_CASE_ID);
-        monitoringAnalyticsRequest.setSourceType(NETWORK_APPLICATION);
+        test.setTest_case(TEST_CASE_OPEN_CALL_TC);
+        test.setUse_case(USE_CASE_OC_9_1);
+        test.setTest_case_id(TEST_CASE_ID);
+        monitoringAnalyticsRequest.setSource_type(NETWORK_APPLICATION);
+        Netapp netapp = new Netapp();
+        netapp.setNet_app_id(STREAM_SELECTOR);
+        monitoringAnalyticsRequest.setNetapp(netapp);
         Map<String, String> headers = new HashMap<String, String>();
         String json = Util.toJson(monitoringAnalyticsRequest);
         headers.put("Content-Type", "application/json");

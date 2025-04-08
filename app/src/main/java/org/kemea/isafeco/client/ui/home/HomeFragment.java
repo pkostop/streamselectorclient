@@ -39,7 +39,7 @@ public class HomeFragment extends Fragment {
         View root = binding.getRoot();
         binding.cameraSwitch.setOnCheckedChangeListener(new CameraButtonChangeListener());
         applicationProperties = new ApplicationProperties(requireActivity().getFilesDir() != null ? requireActivity().getFilesDir().getAbsolutePath() : "");
-        printCameraCapabilities();
+        //printCameraCapabilities();
         return root;
     }
 
@@ -54,6 +54,7 @@ public class HomeFragment extends Fragment {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean rec) {
             try {
+                applicationProperties = new ApplicationProperties(requireActivity().getFilesDir() != null ? requireActivity().getFilesDir().getAbsolutePath() : "");
                 if (!(new Validator()).validateStreamSelectorProperties(applicationProperties, requireContext()))
                     return;
                 if (rec) {

@@ -23,8 +23,8 @@ public class RTPStreamer {
     FFmpegSession ffmpegSession;
     Context context;
     private static final String CMD_FFMPEG_RTPSTREAM_FROM_BACKCAMERA_WITH_PREVIEW =
-            "-f android_camera -i 0:0 -s 360x640 -map 0:v -c:v libx265 -an -ssrc %s -f rtp %s";
-    private static String FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS = " -loglevel debug -protocol_whitelist file,crypto,data,udp,rtp -probesize 5000000 -analyzeduration 10000000 -i %s -f mpegts %s";
+            "-f android_camera -i 0:0 -s 240x426 -map 0:v -c:v libx264 -preset fast -tune zerolatency -profile:v baseline -pix_fmt yuv420p -b:v 512k -maxrate 512k -bufsize 1024k -r 24 -g 24 -keyint_min 24 -sc_threshold 0 -an -ssrc %s -f rtp %s";
+    private static String FFMPEG_CMD_CONVERT_STREAM_TO_MPEGTS = " -loglevel debug -protocol_whitelist file,crypto,data,udp,rtp -probesize 50000 -analyzeduration 500000 -i %s -c:v libx264 -preset fast -g 24 -keyint_min 24 -sc_threshold 0 -fflags nobuffer -flags low_delay -flush_packets 1 -max_delay 0 -f mpegts %s";
 
     public static final String PLAYBACK_SDP = "v=0\n" +
             "o=- 0 0 IN IP4 %s\n" +
@@ -32,7 +32,7 @@ public class RTPStreamer {
             "c=IN IP4 %s\n" +
             "t=0 0\n" +
             "m=video %s RTP/AVP 96\n" +
-            "a=rtpmap:96 H265/90000";
+            "a=rtpmap:96 H264/90000";
 
     static final String SDP_FILE_OPTION = "-sdp_file %s";
 

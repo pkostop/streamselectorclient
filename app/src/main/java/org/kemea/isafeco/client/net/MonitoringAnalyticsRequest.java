@@ -4,16 +4,18 @@ import java.util.List;
 
 public class MonitoringAnalyticsRequest {
 
-    private String sourceType;
+    private String source_type;
     private Test test;
     private Data data;
 
-    public String getSourceType() {
-        return sourceType;
+    private Netapp netapp;
+
+    public String getSource_type() {
+        return source_type;
     }
 
-    public void setSourceType(String sourceType) {
-        this.sourceType = sourceType;
+    public void setSource_type(String source_type) {
+        this.source_type = source_type;
     }
 
     public Test getTest() {
@@ -32,36 +34,42 @@ public class MonitoringAnalyticsRequest {
         this.data = data;
     }
 
+    public Netapp getNetapp() {
+        return netapp;
+    }
 
+    public void setNetapp(Netapp netapp) {
+        this.netapp = netapp;
+    }
 }
 
 class Test {
-    private String useCase;
-    private String testCase;
-    private String testCaseId;
+    private String use_case;
+    private String test_case;
+    private String test_case_id;
 
-    public String getUseCase() {
-        return useCase;
+    public String getUse_case() {
+        return use_case;
     }
 
-    public void setUseCase(String useCase) {
-        this.useCase = useCase;
+    public void setUse_case(String use_case) {
+        this.use_case = use_case;
     }
 
-    public String getTestCase() {
-        return testCase;
+    public String getTest_case() {
+        return test_case;
     }
 
-    public void setTestCase(String testCase) {
-        this.testCase = testCase;
+    public void setTest_case(String test_case) {
+        this.test_case = test_case;
     }
 
-    public String getTestCaseId() {
-        return testCaseId;
+    public String getTest_case_id() {
+        return test_case_id;
     }
 
-    public void setTestCaseId(String testCaseId) {
-        this.testCaseId = testCaseId;
+    public void setTest_case_id(String test_case_id) {
+        this.test_case_id = test_case_id;
     }
 }
 
@@ -157,5 +165,17 @@ class Kpi {
 
     public void setUnit(String unit) {
         this.unit = unit;
+    }
+}
+
+class Netapp {
+    String net_app_id;
+
+    public String getNet_app_id() {
+        return net_app_id;
+    }
+
+    public void setNet_app_id(String net_app_id) {
+        this.net_app_id = net_app_id;
     }
 }

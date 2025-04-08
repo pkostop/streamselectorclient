@@ -37,33 +37,10 @@ public class StreamInputFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_select_stream, container, false);
         streamSelectorService = new StreamSelectorService(requireActivity());
-/*
-        rtpStreamAddressInput = view.findViewById(R.id.rtp_stream_receive_address);
-
-        View saveSourceButton = view.findViewById(R.id.save_source_button);
-*/
         listView = view.findViewById(R.id.streamsList);
         getStreamSelectorStreams();
-/*
-        saveSourceButton.setOnClickListener(v -> {
-            String rtspAddress = rtpStreamAddressInput.getText().toString().trim();
-
-            if (rtspAddress.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a valid RTSP address", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Navigate to LiveStreamFragment and pass the RTSP URL
-            Bundle bundle = new Bundle();
-            bundle.putString("RTSP_URL", rtspAddress);
-
-            NavHostFragment.findNavController(this)
-                    .navigate(R.id.action_streamInputFragment_to_liveStreamFragment, bundle);
-        });
-*/
         return view;
     }
 
@@ -80,15 +57,19 @@ public class StreamInputFragment extends Fragment {
                     Util.toast(StreamInputFragment.this.getActivity(), String.format("Error: %s", e.getMessage()));
                 }
                 if (getSessionsOutput != null) {
-                    requireActivity().runOnUiThread(new Runnable() {
-                        public void run() {
-                            if (listView != null) {
-                                ArrayAdapter<Session> arrayAdapter = createSessionsListViewAdapter(getSessionsOutput);
-                                listView.setAdapter(arrayAdapter);
-                                listView.setOnItemClickListener(new SessionClickListener(requireActivity()));
+                    try {
+                        requireActivity().runOnUiThread(new Runnable() {
+                            public void run() {
+                                if (listView != null) {
+                                    ArrayAdapter<Session> arrayAdapter = createSessionsListViewAdapter(getSessionsOutput);
+                                    listView.setAdapter(arrayAdapter);
+                                    listView.setOnItemClickListener(new SessionClickListener(requireActivity()));
+                                }
                             }
-                        }
-                    });
+                        });
+                    } catch (IllegalStateException e) {
+                        AppLogger.getLogger().e(e);
+                    }
                 }
             }
         }).start();

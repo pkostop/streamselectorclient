@@ -21,22 +21,27 @@ import org.kemea.isafeco.client.streamselector.stubs.StreamSelectorService;
 import org.kemea.isafeco.client.streamselector.stubs.output.GetSessionsOutput;
 import org.kemea.isafeco.client.streamselector.stubs.output.Session;
 import org.kemea.isafeco.client.utils.AppLogger;
+import org.kemea.isafeco.client.utils.ApplicationProperties;
 import org.kemea.isafeco.client.utils.Util;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class StreamInputFragment extends Fragment {
 
     private EditText rtpStreamAddressInput;
     ListView listView;
     StreamSelectorService streamSelectorService;
-
+    ApplicationProperties applicationProperties;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        applicationProperties = new ApplicationProperties(container.getContext().getFilesDir().getAbsolutePath());
         View view = inflater.inflate(R.layout.fragment_select_stream, container, false);
         streamSelectorService = new StreamSelectorService(requireActivity());
         listView = view.findViewById(R.id.streamsList);
@@ -77,16 +82,25 @@ public class StreamInputFragment extends Fragment {
 
     @NonNull
     private ArrayAdapter<Session> createSessionsListViewAdapter(GetSessionsOutput getSessionsOutput) {
-        return new ArrayAdapter<Session>(requireContext(), R.layout.sessions_spinner, getSessionsOutput.getSessions()) {
+        return new ArrayAdapter<Session>(requireContext(), R.layout.sessions_spinner, filterByExtOrg(getSessionsOutput.getSessions())) {
             @NonNull
             @Override
             public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
                 View v = LayoutInflater.from(getContext()).inflate(R.layout.list_item, parent, false);
                 TextView textView = v.findViewById(R.id.itemText);
-                textView.setText(sessionDescription(getSessionsOutput.getSessions()[position]));
+                Session session = getSessionsOutput.getSessions()[position];
+                textView.setText(sessionDescription(session));
                 return textView;
             }
         };
+    }
+
+    private Session[] filterByExtOrg(Session[] sessions) {
+        List<Session> filtered = Arrays.asList(sessions).stream().
+                filter(
+                        x -> applicationProperties.getProperty(ApplicationProperties.PROP_USER_ORG).equalsIgnoreCase(getSessionName(x))).
+                collect(Collectors.toList());
+        return filtered.toArray(new Session[filtered.size()]);
     }
 
     @NonNull

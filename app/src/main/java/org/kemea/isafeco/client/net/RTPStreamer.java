@@ -16,6 +16,7 @@ import com.arthenica.ffmpegkit.Statistics;
 import com.arthenica.ffmpegkit.StatisticsCallback;
 
 import org.kemea.isafeco.client.utils.AppLogger;
+import org.kemea.isafeco.client.utils.ApplicationProperties;
 
 public class RTPStreamer {
     public static final String LOCAL_STREAMING_ADDRESS_FFMPEG = "udp://127.0.0.1:9090";
@@ -55,9 +56,22 @@ public class RTPStreamer {
         ffmpegSession = FFmpegKit.executeAsync(ffmpegCommand, getfFmpegSessionCompleteCallback(sdpFile), getLogCallback(), new StatisticsCallback() {
             @Override
             public void apply(Statistics statistics) {
-                AppLogger.getLogger().e(String.valueOf(statistics.getBitrate()));
+                sendMetrics(
+                        statistics.getBitrate(),
+                        statistics.getSize(),
+                        statistics.getVideoFps());
             }
         });
+    }
+
+    private void sendMetrics(Double bitRate, long size, float videoFps) {
+        ApplicationProperties applicationProperties = new ApplicationProperties(context.getFilesDir().getAbsolutePath());
+        try {
+            new MonitoringAnalyticsClient(applicationProperties.getProperty(ApplicationProperties.PROP_METRICS_URL)).
+                    sendMonitoringAnalyticsRequest(size, ApplicationMonitoringUtil.getUsedHeapMemory(), bitRate, videoFps);
+        } catch (Exception e) {
+            AppLogger.getLogger().e(e.getMessage());
+        }
     }
 
     public void stopStreaming() {

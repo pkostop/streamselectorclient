@@ -23,12 +23,12 @@ public class MonitoringAnalyticsClient {
         this.url = url;
     }
 
-    public void sendMonitoringAnalyticsRequest(long txMBytes, long heapMemory) throws Exception {
+    public void sendMonitoringAnalyticsRequest(long txMBytes, long heapMemory, Double bitRate, float videoFps) throws Exception {
         MonitoringAnalyticsRequest monitoringAnalyticsRequest = new MonitoringAnalyticsRequest();
         Data data = new Data();
         monitoringAnalyticsRequest.setData(data);
-        data.setKpis(Arrays.asList(new Kpi("txmbytes", String.valueOf(txMBytes), "MB"),
-                new Kpi("appheap", String.valueOf(heapMemory), "MB")
+        data.setKpis(Arrays.asList(new Kpi("videosize", String.valueOf(txMBytes), "MB"),
+                new Kpi("appheap", String.valueOf(heapMemory), "MB"), new Kpi("bitrate", String.valueOf(bitRate), "mbps"), new Kpi("videofps", String.valueOf(videoFps), "no")
         ));
         data.setTimestamp(new SimpleDateFormat(ISO8601_FORMAT).format(new Date()));
         data.setMoids(Arrays.asList(new Moid(MOBILE_DEVICE_IP, ApplicationMonitoringUtil.getDeviceIPAddress())));

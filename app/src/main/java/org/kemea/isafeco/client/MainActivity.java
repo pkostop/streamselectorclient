@@ -112,6 +112,9 @@ public class MainActivity extends AppCompatActivity {
         if (Util.isEmpty(applicationProperties.getProperty(ApplicationProperties.PROP_METRICS_URL))) {
             applicationProperties.setProperty(ApplicationProperties.PROP_METRICS_URL, "https://portal-monitoring-analytics.fidal-he.eu/fidal/collector/v1/data/app");
         }
+        if (Util.isEmpty(applicationProperties.getProperty(ApplicationProperties.PROP_USER_ORG))) {
+            applicationProperties.setProperty(ApplicationProperties.PROP_USER_ORG, String.valueOf(0));
+        }
         applicationProperties.save();
     }
 }

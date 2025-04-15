@@ -96,11 +96,23 @@ public class StreamInputFragment extends Fragment {
     }
 
     private Session[] filterByExtOrg(Session[] sessions) {
+        String userOrg = applicationProperties.getProperty(ApplicationProperties.PROP_USER_ORG);
+        final String userOrgLabel = getExtOrgLabel(userOrg);
         List<Session> filtered = Arrays.asList(sessions).stream().
                 filter(
-                        x -> applicationProperties.getProperty(ApplicationProperties.PROP_USER_ORG).equalsIgnoreCase(getSessionName(x))).
+                        x -> getSessionName(x) != null && userOrgLabel != null && userOrgLabel.equalsIgnoreCase(getSessionName(x))).
                 collect(Collectors.toList());
         return filtered.toArray(new Session[filtered.size()]);
+    }
+
+    @NonNull
+    private static String getExtOrgLabel(String userOrg) {
+        String userOrgLabel = "ALL_FORCES";
+        if ("1".equalsIgnoreCase(userOrg))
+            userOrgLabel = "HELLENIC_POLICE";
+        if ("2".equalsIgnoreCase(userOrg))
+            userOrgLabel = "HELLENIC_FIRE_SERVICE";
+        return userOrgLabel;
     }
 
     @NonNull

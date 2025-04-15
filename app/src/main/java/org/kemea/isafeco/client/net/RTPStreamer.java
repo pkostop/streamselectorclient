@@ -70,7 +70,7 @@ public class RTPStreamer {
             new MonitoringAnalyticsClient(applicationProperties.getProperty(ApplicationProperties.PROP_METRICS_URL)).
                     sendMonitoringAnalyticsRequest(size, ApplicationMonitoringUtil.getUsedHeapMemory(), bitRate, videoFps);
         } catch (Exception e) {
-            AppLogger.getLogger().e(e.getMessage());
+            //AppLogger.getLogger().e(e.getMessage());
         }
     }
 
